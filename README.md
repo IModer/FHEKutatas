@@ -4,9 +4,9 @@ Téma: Algoritmus implementálása FHE-ben
 
 ## Idővonal
 
-05. 04 - TDJ jelentkezés leadás
-05. 18 - Dolgazatok feltöltése
-06. 01 - TDK Konferencia
+- 05 04 - TDJ jelentkezés leadás
+- 05 18 - Dolgazatok feltöltése
+- 06 01 - TDK Konferencia
 
 ## Teendők
 
