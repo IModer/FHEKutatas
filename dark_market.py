@@ -29,14 +29,23 @@ def dark_market(s, b):
     leftVol = transVol
 
     for i in range(MAXLENGTH):
-        z_1 = (leftVol <= 0)
-        z_2 = (leftVol < s[i])
-        s[i] = ( ( leftVol - s[i] ) * z_2 + s[i] ) * (1 - z_1)
+        #z_1 = (leftVol <= 0)
+        #z_2 = (leftVol < s[i])
+        #s[i] = ( ( leftVol - s[i] ) * z_2 + s[i] ) * (1 - z_1)
+        s[i] = min(s[i], leftVol)
         leftVol -= s[i]
+
         #value_to_lookup = min(leftVol, s[i]) + 2**VALUE_BITWIDTH * (1 - (leftVol >= 0))
         #s[i] = select_lut[value_to_lookup]
 
-    return s
+    leftVol = transVol
+
+    for i in range(MAXLENGTH):
+        b[i] = min(b[i], leftVol)
+        leftVol -= b[i]
+
+    #Todo: return both lists at the same time
+    return b
 
 def clean_part(s,b):
     print(s, b)
@@ -54,4 +63,9 @@ def clean_part(s,b):
 
     print(res)
 
-clean_part([1,2,3] + [0] * (MAXLENGTH - 3), [2,2] + [0] * (MAXLENGTH - 2))
+s = [1,2,3] + [0] * (MAXLENGTH - 3)
+b = [2,2] + [0] * (MAXLENGTH - 2)
+
+clean_part(s, b)
+res = dark_market(s, b)
+print(res)
