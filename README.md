@@ -2,6 +2,12 @@
 
 Téma: Algoritmus implementálása FHE-ben
 
+## Idővonal
+
+05. 04 - TDJ jelentkezés leadás
+05. 18 - Dolgazatok feltöltése
+06. 01 - TDK Konferencia
+
 ## Teendők
 
 - TDK jelentkezés : [http://tda.inf.elte.hu/](http://tda.inf.elte.hu/)
@@ -13,5 +19,9 @@ Téma: Algoritmus implementálása FHE-ben
 ## Használt anyagok
 
 ## Hasznos linkek
+
+[Concrete docs](https://docs.zama.ai/concrete)
+
+[Concrete forum](https://community.zama.ai/c/concrete/7)
 
 [Bounty program](https://github.com/zama-ai/bounty-program)
