@@ -20,8 +20,8 @@ def sum(list):
         r += val
     return r
 
-@fhe.compiler({"s" : "encrypted", "b" : "encrypted", "r" : "encrypted"})
-def dark_market(s, b, r):
+@fhe.compiler({"s" : "encrypted", "b" : "encrypted"})
+def dark_market(s, b):
     sellVol = sum(s)
     buyVol = sum(b)
     transVol = min(sellVol, buyVol)
@@ -34,8 +34,6 @@ def dark_market(s, b, r):
         #s[i] = ( ( leftVol - s[i] ) * z_2 + s[i] ) * (1 - z_1)
         s[i] = min(s[i], leftVol)
         leftVol -= s[i]
-        r[i] = s[i]
-
         #value_to_lookup = min(leftVol, s[i]) + 2**VALUE_BITWIDTH * (1 - (leftVol >= 0))
         #s[i] = select_lut[value_to_lookup]
 
@@ -44,35 +42,39 @@ def dark_market(s, b, r):
     for i in range(MAXLENGTH):
         b[i] = min(b[i], leftVol)
         leftVol -= b[i]
-        r[i+MAXLENGTH] = b[i]
+    return np.concatenate((s, b))
 
-    #Todo: return both lists at the same time
-    return r
-
-def clean_part(s,b, r):
+def clean_part(s,b):
     print(s, b)
+    print("")
     CONFIGURATION = fhe.Configuration(
         enable_unsafe_features=True,
         use_insecure_key_cache=True,
         insecure_key_cache_location=".keys",
     )
 
-    inputset = [([random.randint(0, MAX_VALUE) for i in range(MAXLENGTH)], [random.randint(0, MAX_VALUE) for i in range(MAXLENGTH)], [0 for i in range(2*MAXLENGTH)]) , 
-                ([MAX_VALUE for i in range(MAXLENGTH)],[MAX_VALUE for i in range(MAXLENGTH)], [0 for i in range(2*MAXLENGTH)]),
-                ([MAX_VALUE for i in range(MAXLENGTH)],[MAX_VALUE for i in range(MAXLENGTH)], [0 for i in range(2*MAXLENGTH)])]
-
+    inputset = [([random.randint(0, MAX_VALUE) for i in range(MAXLENGTH)], [random.randint(0, MAX_VALUE) for i in range(MAXLENGTH)]) , 
+                ([MAX_VALUE for i in range(MAXLENGTH)],[MAX_VALUE for i in range(MAXLENGTH)]),
+                ([MAX_VALUE for i in range(MAXLENGTH)],[MAX_VALUE for i in range(MAXLENGTH)])]
     circuit = dark_market.compile(inputset, CONFIGURATION)
-
-    res = list(circuit.encrypt_run_decrypt(s,b,r))
-
+    a = circuit.encrypt(s, b)
+    start = time.time()
+    b = circuit.run(a)
+    end = time.time()
+    res = circuit.decrypt(b)
+    #res = list(circuit.encrypt_run_decrypt(s,b))
+    print("The encrypted result:")
     print(res)
-    print(circuit)
+    print("The time it took:")
+    print(end - start)
+    #print(circuit)
 
 #s = [1,2,3] + [0] * (MAXLENGTH - 3)
 #b = [2,2] + [0] * (MAXLENGTH - 2)
 s = [random.randint(0, MAX_VALUE) for i in range(MAXLENGTH)]
 b = [random.randint(0, MAX_VALUE) for i in range(MAXLENGTH)]
-r = [0 for i in range(2*MAXLENGTH)]
-clean_part(s, b, r)
-res = dark_market(s, b, r)
+print("Running algorithm on:")
+clean_part(s, b)
+print("")
+res = list(dark_market(s, b))
 print(res)
