@@ -3,7 +3,7 @@ import numpy as np
 import time
 import random
 
-VALUE_BITWIDTH = 4
+VALUE_BITWIDTH = 3
 MAX_VALUE = 2**VALUE_BITWIDTH - 1
 MIN_VALUE = 0
 
@@ -22,8 +22,8 @@ def sum(list):
 
 @fhe.compiler({"s" : "encrypted", "b" : "encrypted"})
 def dark_market(s, b):
-    sellVol = sum(s)
-    buyVol = sum(b)
+    sellVol = np.sum(s)
+    buyVol = np.sum(b)
     transVol = min(sellVol, buyVol)
 
     leftVol = transVol
@@ -31,7 +31,7 @@ def dark_market(s, b):
     for i in range(MAXLENGTH):
         #z_1 = (leftVol <= 0)
         #z_2 = (leftVol < s[i])
-        #s[i] = ( ( leftVol - s[i] ) * z_2 + s[i] ) * (1 - z_1)
+        #s[i] = ( ( leftVol - s[i] ) * z_2 + s[i] )
         s[i] = min(s[i], leftVol)
         leftVol -= s[i]
         #value_to_lookup = min(leftVol, s[i]) + 2**VALUE_BITWIDTH * (1 - (leftVol >= 0))
@@ -40,6 +40,8 @@ def dark_market(s, b):
     leftVol = transVol
 
     for i in range(MAXLENGTH):
+        #z_2 = (leftVol < s[i])
+        #b[i] = ( ( leftVol - b[i] ) * z_2 + b[i] )
         b[i] = min(b[i], leftVol)
         leftVol -= b[i]
     return np.concatenate((s, b))
@@ -48,12 +50,14 @@ def clean_part(s,b):
     print(s, b)
     print("")
     CONFIGURATION = fhe.Configuration(
+        dataflow_parallelize = True,
+        auto_parallelize = True,
         enable_unsafe_features=True,
         use_insecure_key_cache=True,
         insecure_key_cache_location=".keys",
     )
 
-    inputset = [([random.randint(0, MAX_VALUE) for i in range(MAXLENGTH)], [random.randint(0, MAX_VALUE) for i in range(MAXLENGTH)]) , 
+    inputset = [([random.randint(0, MAX_VALUE) for i in range(MAXLENGTH)], [random.randint(0, MAX_VALUE) for i in range(MAXLENGTH)]) ,
                 ([MAX_VALUE for i in range(MAXLENGTH)],[MAX_VALUE for i in range(MAXLENGTH)]),
                 ([MAX_VALUE for i in range(MAXLENGTH)],[MAX_VALUE for i in range(MAXLENGTH)])]
     circuit = dark_market.compile(inputset, CONFIGURATION)
@@ -64,7 +68,7 @@ def clean_part(s,b):
     res = circuit.decrypt(b)
     #res = list(circuit.encrypt_run_decrypt(s,b))
     print("The encrypted result:")
-    print(res)
+    print(list(res))
     print("The time it took:")
     print(end - start)
     #print(circuit)
