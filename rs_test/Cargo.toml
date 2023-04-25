@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 tfhe = { version = "0.2.0", features = [ "boolean", "shortint", "integer", "x86_64-unix" ] }
+
+[profile.dev]
+opt-level = 3
