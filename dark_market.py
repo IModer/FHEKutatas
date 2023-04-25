@@ -14,6 +14,12 @@ select_lut = fhe.LookupTable([0 for i in range(2**VALUE_BITWIDTH)] + [i for i in
 def min(a, b):
     return np.minimum(a-b, 0) + b
 
+@fhe.compiler({"a" : "encrypted", "b" : "encrypted"})
+def add(a ,b):
+    for i in range(15):
+        a = (a+b) % 64
+    return a
+
 def sum(list):
     r = 0
     for val in list:
@@ -60,15 +66,22 @@ def clean_part(s,b):
     inputset = [([random.randint(0, MAX_VALUE) for i in range(MAXLENGTH)], [random.randint(0, MAX_VALUE) for i in range(MAXLENGTH)]) ,
                 ([MAX_VALUE for i in range(MAXLENGTH)],[MAX_VALUE for i in range(MAXLENGTH)]),
                 ([MAX_VALUE for i in range(MAXLENGTH)],[MAX_VALUE for i in range(MAXLENGTH)])]
+
+    add_input = [(random.randint(0,63), random.randint(0, 63)) for i in range(100)]
+    add_circuit = add.compile(add_input, CONFIGURATION)
+
     circuit = dark_market.compile(inputset, CONFIGURATION)
-    a = circuit.encrypt(s, b)
+    #a = circuit.encrypt(s, b)
+    c = add_circuit.encrypt(60, 60)
     start = time.time()
-    b = circuit.run(a)
+    #b = circuit.run(a)
+    d = add_circuit.run(c)
     end = time.time()
-    res = circuit.decrypt(b)
+    #res = circuit.decrypt(b)
+    res = add_circuit.decrypt(d)
     #res = list(circuit.encrypt_run_decrypt(s,b))
     print("The encrypted result:")
-    print(list(res))
+    print(res)
     print("The time it took:")
     print(end - start)
     #print(circuit)
