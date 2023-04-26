@@ -4,6 +4,7 @@ use rand::Rng;
 use tfhe::integer::{ServerKey, gen_keys_radix, ciphertext::BaseRadixCiphertext};
 use tfhe::shortint::{CiphertextBase, ciphertext::KeyswitchBootstrap};
 use tfhe::shortint::parameters::PARAM_MESSAGE_2_CARRY_2;
+use rayon::{join};
 
 type Cipertext = BaseRadixCiphertext<CiphertextBase<KeyswitchBootstrap>>;
 
@@ -146,7 +147,7 @@ fn volume_match(
     server_key: &ServerKey
 ) -> (Vec<Cipertext>, Vec<Cipertext>) 
 {
-    let size = 500;
+    let size = 100;
 
     // Init variables
 
@@ -155,15 +156,20 @@ fn volume_match(
     let mut B_1  = server_key.create_trivial_zero_radix(4);
     let mut B_2  = server_key.create_trivial_zero_radix(4);
 
-    // Sum into S and B  <- Parallalise this
+    // Sum into S and B in paralell
 
-    for i in 0..size {
-        add(&mut S_1, &mut S_2, &mut s[i], server_key);
-    }
+    join(
+        || (for i in 0..size {add(&mut S_1, &mut S_2, &mut s[i], server_key);}), 
+        || (for i in 0..size {add(&mut B_1, &mut B_2, &mut b[i], server_key);})
+    );
 
-    for i in 0..size {
-        add(&mut B_1, &mut B_2, &mut s[i], server_key);
-    }
+    // for i in 0..size {
+    //     add(&mut S_1, &mut S_2, &mut s[i], server_key);
+    // }
+
+    // for i in 0..size {
+    //     add(&mut B_1, &mut B_2, &mut b[i], server_key);
+    // }
 
     // Min of S and B
 
@@ -171,23 +177,30 @@ fn volume_match(
     
     // Calculate new s and b <- Parallalise this
 
-    for i in 0..size {
-        s[i] = min(&mut S_1,&mut S_2, &mut s[i], server_key);
-        sub(&mut lTT_1 , &mut lTT_2, &mut s[i], server_key);
-    }
+    let (mut lTT_1c, mut lTT_2c) = (lTT_1.clone(), lTT_2.clone());  //This might actually outweight the gains of paralellism
+    join(
+        ||(for i in 0..size {s[i] = min(&mut S_1,&mut S_2, &mut s[i], server_key);sub(&mut lTT_1 , &mut lTT_2, &mut s[i], server_key);}),
+        ||(for i in 0..size {b[i] = min(&mut B_1,&mut B_2, &mut b[i], server_key);sub(&mut lTT_1c , &mut lTT_2c, &mut b[i], server_key);})
+    );
 
-    for i in 0..size {
-        b[i] = min(&mut B_1,&mut B_2, &mut b[i], server_key);
-        sub(&mut lTT_1 , &mut lTT_2, &mut b[i], server_key);
-    }
+    // for i in 0..size {
+    //     s[i] = min(&mut S_1,&mut S_2, &mut s[i], server_key);
+    //     sub(&mut lTT_1 , &mut lTT_2, &mut s[i], server_key);
+    // }
+
+    // for i in 0..size {
+    //     b[i] = min(&mut B_1,&mut B_2, &mut b[i], server_key);
+    //     sub(&mut lTT_1 , &mut lTT_2, &mut b[i], server_key);
+    // }
 
     return (s.to_vec() , b.to_vec());
+    
 }
 
 fn main() {
     // We generate a set of client/server keys, using the default parameters:
     let num_block = 4;
-    let size = 500;
+    let size = 100;
     let (client_key, server_key) = gen_keys_radix(&PARAM_MESSAGE_2_CARRY_2, num_block);
 
     // Define varibles, this should be random
