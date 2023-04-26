@@ -1,6 +1,11 @@
 use tfhe::{ConfigBuilder, generate_keys, set_server_key, FheUint16};
 use tfhe::prelude::*;
 use std::time::Instant;
+use rand::Rng;
+use rayon::{join};
+
+const MAXLISTLENGTH : usize = 500;
+const MAXVALUE : u16 = 100;
 
 
 //I don't understand Rust enough to make it work through a function :(
@@ -31,6 +36,7 @@ use std::time::Instant;
 }*/
 
 fn main() {
+    let size = 500;
     let config = ConfigBuilder::all_disabled()
         .enable_default_uint16()
         .build();
@@ -38,15 +44,22 @@ fn main() {
     // Client-side
     let (client_key, server_key) = generate_keys(config);
 
-    let mut clear_s: Vec<u16> = Vec::new();
-    let mut clear_b: Vec<u16> = Vec::new();
 
-    for i in 0..500
-    {
-        clear_s.push(i);
-        clear_b.push(1);
+    //Set the input sell/buy values
+    let mut rng = rand::thread_rng();
+
+    let mut clear_s : Vec<u16> = vec![0; size];
+    let mut clear_b : Vec<u16> = vec![0; size];
+    
+    for x in &mut clear_s {
+        *x = rng.gen_range(0..MAXVALUE);
     }
 
+    for x in &mut clear_b {
+        *x = rng.gen_range(0..MAXVALUE);
+    }
+
+    //Encrypt them
     let mut s: Vec<FheUint16> = Vec::new();
     let mut b: Vec<FheUint16> = Vec::new();
 
@@ -62,36 +75,41 @@ fn main() {
 
     let mut S = FheUint16::encrypt(0u16, &client_key);
     let mut B = FheUint16::encrypt(0u16, &client_key);
-    //Server-side
+
     set_server_key(server_key);
 
+    //Run the algorithm
     let now = Instant::now();
 
-    for i in 0..s.len() {
-        S = S + &s[i];
-    }
-    for i in 0..b.len() {
-        B = B + &b[i];
-
-    }
+    join(
+        || (for i in 0..s.len() {
+                S = S + &s[i];
+            }),
+        ||  (for i in 0..b.len() {
+                B = B + &b[i];
+            })
+    );
 
     //S function now as the first leftvol/transvol B as the second
     S = S.min(&B);
     B = S.clone();
 
-    for i in 0..s.len() {
-        s[i] = s[i].min(&S);
-        S = S - &s[i];
-    }
-    
-    for i in 0..b.len() {
-        b[i] = b[i].min(&B);
-        B = B - &b[i];
-    }
+
+    join(
+        || (for i in 0..s.len() {
+            s[i] = s[i].min(&S);
+            S = S - &s[i];
+        }),
+
+        || (for i in 0..b.len() {
+                b[i] = b[i].min(&B);
+                B = B - &b[i];
+            })
+    );
 
     let elapsed = now.elapsed();
 
-    //Client-side
+    //Decrypt the result
     for i in 0..clear_s.len()
     {
         clear_s[i] = s[i].decrypt(&client_key);
@@ -102,6 +120,7 @@ fn main() {
         clear_b[i] = b[i].decrypt(&client_key);
     }
 
+    //Print it
     println!("{:?}", clear_s);
     println!("{:?}", clear_b);
     println!("Elapsed: {:.2?}", elapsed);
