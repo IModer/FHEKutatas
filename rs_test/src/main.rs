@@ -136,7 +136,7 @@ fn min2(
     }
 fn main() {
     // We generate a set of client/server keys, using the default parameters:
-    let num_block = 4;
+    let num_block = 8;
     let (client_key, server_key) = gen_keys_radix(&PARAM_MESSAGE_2_CARRY_2, num_block);
     
 
@@ -151,16 +151,18 @@ fn main() {
     let mut b2 = client_key.encrypt(clear_b2);
     
     let now = Instant::now();
-    
     for _i in 0..10 {
+        b1 = server_key.min_parallelized(&mut a1, &mut a2);
+    }
+    let elapsed = now.elapsed();
+    /*for _i in 0..10 {
         add(&mut a1, &mut a2, &mut b1, &server_key);
         sub(&mut a1, &mut a2, &mut b1, &server_key);
         
         b1 = min(&mut a1, &mut a2, &mut b1, &server_key);
     }
-    (b1, b2) = min2(&mut a1, &mut a2, &mut b1, &mut b2, &server_key);
+    (b1, b2) = min2(&mut a1, &mut a2, &mut b1, &mut b2, &server_key);*/
     
-    let elapsed = now.elapsed();
 
     
     let result_a1: u64 = client_key.decrypt(&a1);
