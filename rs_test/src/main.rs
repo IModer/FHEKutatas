@@ -7,7 +7,7 @@ use tfhe::shortint::parameters::PARAM_MESSAGE_2_CARRY_2;
 
 type Cipertext = BaseRadixCiphertext<CiphertextBase<KeyswitchBootstrap>>;
 
-const MAXLISTLENGTH : usize = 500;
+const MAXLISTLENGTH : usize = 100;  //500
 const MAXVALUE : u64 = 100;
 
 /*fn add(
@@ -146,6 +146,7 @@ fn volume_match(
     server_key: &ServerKey
 ) -> (Vec<Cipertext>, Vec<Cipertext>) 
 {
+    let size = 500;
 
     // Init variables
 
@@ -156,11 +157,11 @@ fn volume_match(
 
     // Sum into S and B  <- Parallalise this
 
-    for i in 0..MAXLISTLENGTH {
+    for i in 0..size {
         add(&mut S_1, &mut S_2, &mut s[i], server_key);
     }
 
-    for i in 0..MAXLISTLENGTH {
+    for i in 0..size {
         add(&mut B_1, &mut B_2, &mut s[i], server_key);
     }
 
@@ -170,12 +171,12 @@ fn volume_match(
     
     // Calculate new s and b <- Parallalise this
 
-    for i in 0..MAXLISTLENGTH {
+    for i in 0..size {
         s[i] = min(&mut S_1,&mut S_2, &mut s[i], server_key);
         sub(&mut lTT_1 , &mut lTT_2, &mut s[i], server_key);
     }
 
-    for i in 0..MAXLISTLENGTH {
+    for i in 0..size {
         b[i] = min(&mut B_1,&mut B_2, &mut b[i], server_key);
         sub(&mut lTT_1 , &mut lTT_2, &mut b[i], server_key);
     }
@@ -185,14 +186,15 @@ fn volume_match(
 
 fn main() {
     // We generate a set of client/server keys, using the default parameters:
-    let num_block = 8;
+    let num_block = 4;
+    let size = 500;
     let (client_key, server_key) = gen_keys_radix(&PARAM_MESSAGE_2_CARRY_2, num_block);
 
     // Define varibles, this should be random
     let mut rng = rand::thread_rng();
 
-    let mut s_clear : Vec<u64> = vec![0; 500];
-    let mut b_clear : Vec<u64> = vec![0; 500];
+    let mut s_clear : Vec<u64> = vec![0; size];
+    let mut b_clear : Vec<u64> = vec![0; size];
     
     for x in &mut s_clear {
         *x = rng.gen_range(0..MAXVALUE);
@@ -210,10 +212,10 @@ fn main() {
     // This i dont know about
     // let mut s = client_key.encrypt(s);
     // let mut b = client_key.encrypt(b);
-    let mut s = Vec::with_capacity(500);
-    let mut b = Vec::with_capacity(500);  // It can be vec![] ? Might be difficult
+    let mut s = Vec::with_capacity(size);
+    let mut b = Vec::with_capacity(size);  // It can be vec![] ? Might be difficult
 
-    for i in 0..500 {
+    for i in 0..size {
         s.push(client_key.encrypt(s_clear[i]));
         b.push(client_key.encrypt(b_clear[i]));
     }
@@ -263,8 +265,8 @@ fn main() {
 
     // Print results
 
-    print!("Result : s = {s_clear:?} b = {b_clear:?}");
-    print!("Times elapsed {elapsed:.2?}")
+    println!("Result : \n s = {s_clear:?} \n b = {b_clear:?}");
+    println!("Times elapsed {elapsed:.2?}");
 
     // //println!("{result_a}, {result_b}");
     // //println!("Elapsed: {elapsed:.2?}");
