@@ -8,8 +8,8 @@ use rayon::{join};
 
 type Cipertext = BaseRadixCiphertext<CiphertextBase<KeyswitchBootstrap>>;
 
-const MAXLISTLENGTH : usize = 100;  //500
-const MAXVALUE : u64 = 100;
+const MAXLISTLENGTH : usize = 10;  //500
+const MAXVALUE : u64 = 10;
 
 /*fn add(
     a1: &mut tfhe::integer::ciphertext::BaseRadixCiphertext<tfhe::shortint::CiphertextBase<tfhe::shortint::ciphertext::KeyswitchBootstrap>>,
@@ -33,6 +33,7 @@ fn add(
         let mut s = a1.clone(); 
 
         if !server_key.is_add_possible(a1, b) {
+            //let carry = server_key.key.carry_extract(a1.blocks());
             server_key.full_propagate_parallelized(a1);
         }
         server_key.unchecked_add_assign(a1, b);
@@ -123,20 +124,20 @@ fn min2(
         let mut e1 = server_key.smart_mul_parallelized(&mut d1, &mut z1);
 
 
-        if !server_key.is_add_possible(&mut e1, a1) {
-            server_key.full_propagate_parallelized(a1);
+        if !server_key.is_add_possible(&mut e1, b1) {
+            server_key.full_propagate_parallelized(b1);
         }
-        let c1 = server_key.unchecked_add(&mut e1, a1);
+        let c1 = server_key.unchecked_add(&mut e1, b1);
 
         
         let mut d2 = server_key.smart_sub_parallelized(a2, b2);
         let mut e2 = server_key.smart_mul_parallelized(&mut d2, &mut z1);
 
 
-        if !server_key.is_add_possible(&mut e2, a2) {
-            server_key.full_propagate_parallelized(a2);
+        if !server_key.is_add_possible(&mut e2, b2) {
+            server_key.full_propagate_parallelized(b2);
         }
-        let c2 = server_key.unchecked_add(&mut e2, a2);
+        let c2 = server_key.unchecked_add(&mut e2, b2);
 
         return (c1, c2);
     }
@@ -147,7 +148,7 @@ fn volume_match(
     server_key: &ServerKey
 ) -> (Vec<Cipertext>, Vec<Cipertext>) 
 {
-    let size = 100;
+    let size = 10;
 
     // Init variables
 
@@ -200,7 +201,7 @@ fn volume_match(
 fn main() {
     // We generate a set of client/server keys, using the default parameters:
     let num_block = 4;
-    let size = 100;
+    let size = 10;
     let (client_key, server_key) = gen_keys_radix(&PARAM_MESSAGE_2_CARRY_2, num_block);
 
     // Define varibles, this should be random
@@ -219,6 +220,7 @@ fn main() {
     // //let clear_a1 = 10u64; let clear_a2 = 10u64;
     // //let clear_b1 = 11u64; let clear_b2 = 10u64;
     
+    println!("Input : \n s = {s_clear:?} \n b = {b_clear:?}");
 
     // Encrypt values
     

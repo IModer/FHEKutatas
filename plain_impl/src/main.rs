@@ -2,10 +2,8 @@ use tfhe::{ConfigBuilder, generate_keys, set_server_key, FheUint16};
 use tfhe::prelude::*;
 use std::time::Instant;
 use rand::Rng;
-use rayon::{join};
 
-const MAXLISTLENGTH : usize = 500;
-const MAXVALUE : u16 = 100;
+const MAXVALUE : u16 = 10;
 
 
 //I don't understand Rust enough to make it work through a function :(
@@ -36,7 +34,7 @@ const MAXVALUE : u16 = 100;
 }*/
 
 fn main() {
-    let size = 500;
+    let size = 10;
     let config = ConfigBuilder::all_disabled()
         .enable_default_uint16()
         .build();
@@ -44,6 +42,7 @@ fn main() {
     // Client-side
     let (client_key, server_key) = generate_keys(config);
 
+    set_server_key(server_key);
 
     //Set the input sell/buy values
     let mut rng = rand::thread_rng();
@@ -59,53 +58,50 @@ fn main() {
         *x = rng.gen_range(0..MAXVALUE);
     }
 
+    println!("Input : \n s = {clear_s:?} \n b = {clear_b:?}");
+    
     //Encrypt them
     let mut s: Vec<FheUint16> = Vec::new();
     let mut b: Vec<FheUint16> = Vec::new();
-
+    
     for i in 0..clear_s.len()
     {
         s.push(FheUint16::encrypt(clear_s[i], &client_key));
     }
-
+    
     for i in 0..clear_b.len()
     {
         b.push(FheUint16::encrypt(clear_b[i], &client_key));
     }
 
-    let mut S = FheUint16::encrypt(0u16, &client_key);
-    let mut B = FheUint16::encrypt(0u16, &client_key);
+    let mut sell_vol = FheUint16::encrypt(0u16, &client_key);
+    let mut buy_vol = FheUint16::encrypt(0u16, &client_key);
 
-    set_server_key(server_key);
 
     //Run the algorithm
     let now = Instant::now();
 
-    join(
-        || (for i in 0..s.len() {
-                S = S + &s[i];
-            }),
-        ||  (for i in 0..b.len() {
-                B = B + &b[i];
-            })
-    );
+    for i in 0..s.len() {
+        sell_vol = sell_vol + &s[i];
+    }
+    for i in 0..b.len() {
+        buy_vol = buy_vol + &b[i];
+    }
 
-    //S function now as the first leftvol/transvol B as the second
-    S = S.min(&B);
-    B = S.clone();
+    //S functions now as the first leftvol/transvol B as the second
+    sell_vol = sell_vol.min(&buy_vol);
+    buy_vol = sell_vol.clone();
 
 
-    join(
-        || (for i in 0..s.len() {
-            s[i] = s[i].min(&S);
-            S = S - &s[i];
-        }),
+    for i in 0..s.len() {
+        s[i] = s[i].min(&sell_vol);
+        sell_vol = sell_vol - &s[i];
+    }
 
-        || (for i in 0..b.len() {
-                b[i] = b[i].min(&B);
-                B = B - &b[i];
-            })
-    );
+    for i in 0..b.len() {
+        b[i] = b[i].min(&buy_vol);
+        buy_vol = buy_vol - &b[i];
+    }
 
     let elapsed = now.elapsed();
 
@@ -121,7 +117,7 @@ fn main() {
     }
 
     //Print it
-    println!("{:?}", clear_s);
-    println!("{:?}", clear_b);
+    println!("Output : \n s = {clear_s:?} \n b = {clear_b:?}");
+
     println!("Elapsed: {:.2?}", elapsed);
 }
