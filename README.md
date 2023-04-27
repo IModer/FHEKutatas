@@ -4,9 +4,9 @@ Téma: Volume match algoritmus implementálása FHE-ben
 
 ## Idővonal
 
-- 05. 04. - TDK jelentkezés leadás &&Absztrakt feltöltés
-- 05. 18. - Dolgazatok feltöltése
-- 06. 01. - TDK Konferencia
+- 05-04 - TDK jelentkezés leadás &&Absztrakt feltöltés
+- 05-18 - Dolgazatok feltöltése
+- 06-01 - TDK Konferencia
 
 ## Teendők
 
