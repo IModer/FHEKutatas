@@ -3,38 +3,39 @@ use tfhe::prelude::*;
 use std::time::Instant;
 use rand::Rng;
 
-const MAXVALUE : u16 = 10;
+const MAXLISTLENGTH: usize = 10;
+const MAXVALUE : u16 = 100;
 
+fn volume_match(s: &mut Vec<FheUint16>, b: &mut Vec<FheUint16>){
+    let mut sell_vol = FheUint16::encrypt_trivial(0u16);
+    let mut buy_vol = FheUint16::encrypt_trivial(0u16);
 
-//I don't understand Rust enough to make it work through a function :(
-/*fn market(s: &mut Vec<FheUint16>, b: &mut Vec<FheUint16>, mut S: FheUint16, mut B: FheUint16) -> (Vec<FheUint16>,Vec<FheUint16>){
-    for i in 1..s.len() {
-        S = S + &s[i];
+    //Sum s and b
+
+    for i in 0..s.len() {
+        sell_vol = sell_vol + &s[i];
     }
-    for i in 1..b.len() {
-        B = B + &b[i];
-    }
-
-    //S function now as the first leftvol/transvol B as the second
-
-    S = S.min(&B);
-    B = S.clone();
-
-    for i in 1..s.len() {
-        s[i] = s[i].min(&S);
-        S = S - &s[i];
-    }
-    
-    for i in 1..s.len() {
-        b[i] = b[i].min(&B);
-        B = B - &b[i];
+    for i in 0..b.len() {
+        buy_vol = buy_vol + &b[i];
     }
 
-    (s.to_vec(), b.to_vec())
-}*/
+    //S functions now as the first leftvol/transvol B as the second
+    sell_vol = sell_vol.min(&buy_vol);
+    buy_vol = sell_vol.clone();
+
+
+    for i in 0..s.len() {
+        s[i] = s[i].min(&sell_vol);
+        sell_vol = sell_vol - &s[i];
+    }
+
+    for i in 0..b.len() {
+        b[i] = b[i].min(&buy_vol);
+        buy_vol = buy_vol - &b[i];
+    }
+}
 
 fn main() {
-    let size = 10;
     let config = ConfigBuilder::all_disabled()
         .enable_default_uint16()
         .build();
@@ -47,8 +48,8 @@ fn main() {
     //Set the input sell/buy values
     let mut rng = rand::thread_rng();
 
-    let mut clear_s : Vec<u16> = vec![0; size];
-    let mut clear_b : Vec<u16> = vec![0; size];
+    let mut clear_s : Vec<u16> = vec![0; MAXLISTLENGTH];
+    let mut clear_b : Vec<u16> = vec![0; MAXLISTLENGTH];
     
     for x in &mut clear_s {
         *x = rng.gen_range(0..MAXVALUE);
@@ -74,34 +75,11 @@ fn main() {
         b.push(FheUint16::encrypt(clear_b[i], &client_key));
     }
 
-    let mut sell_vol = FheUint16::encrypt(0u16, &client_key);
-    let mut buy_vol = FheUint16::encrypt(0u16, &client_key);
-
-
+    
     //Run the algorithm
     let now = Instant::now();
-
-    for i in 0..s.len() {
-        sell_vol = sell_vol + &s[i];
-    }
-    for i in 0..b.len() {
-        buy_vol = buy_vol + &b[i];
-    }
-
-    //S functions now as the first leftvol/transvol B as the second
-    sell_vol = sell_vol.min(&buy_vol);
-    buy_vol = sell_vol.clone();
-
-
-    for i in 0..s.len() {
-        s[i] = s[i].min(&sell_vol);
-        sell_vol = sell_vol - &s[i];
-    }
-
-    for i in 0..b.len() {
-        b[i] = b[i].min(&buy_vol);
-        buy_vol = buy_vol - &b[i];
-    }
+    
+    volume_match(&mut s, &mut b);
 
     let elapsed = now.elapsed();
 

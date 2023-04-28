@@ -5,19 +5,17 @@ use tfhe::integer::{ServerKey, gen_keys_radix, ciphertext::BaseRadixCiphertext};
 use tfhe::shortint::{CiphertextBase, ciphertext::KeyswitchBootstrap};
 use tfhe::shortint::parameters::PARAM_MESSAGE_2_CARRY_2;
 use rayon::{join};
-
 type Cipertext = BaseRadixCiphertext<CiphertextBase<KeyswitchBootstrap>>;
 
 const MAXLISTLENGTH : usize = 10;  //500
-const MAXVALUE : u64 = 100;
+const MAXVALUE : u64 = 10;
 const NUM_BLOCK: usize = 8;
 
 
 fn volume_match(
     s : &mut Vec<Cipertext>,
     b : &mut Vec<Cipertext>,
-    server_key: &ServerKey
-) -> (Vec<Cipertext>, Vec<Cipertext>) 
+    server_key: &ServerKey)
 {
     // Init variables
 
@@ -47,9 +45,6 @@ fn volume_match(
         ||(for i in 0..MAXLISTLENGTH {s[i] = server_key.smart_min_parallelized(&mut s[i], &mut S);server_key.smart_sub_assign_parallelized(&mut S, &mut s[i]);}),
         ||(for i in 0..MAXLISTLENGTH {b[i] = server_key.smart_min_parallelized(&mut b[i], &mut B);server_key.smart_sub_assign_parallelized(&mut B, &mut b[i]);})
     );
-
-    return (s.to_vec() , b.to_vec());
-    
 }
 
 fn main() {
@@ -69,11 +64,8 @@ fn main() {
     for x in &mut b_clear {
         *x = rng.gen_range(0..MAXVALUE);
     }
-    // //let clear_a1 = 10u64; let clear_a2 = 10u64;
-    // //let clear_b1 = 11u64; let clear_b2 = 10u64;
     
     println!("Input : \n s = {s_clear:?} \n b = {b_clear:?}");
-
     // Encrypt values
     
     // This i dont know about
@@ -81,13 +73,13 @@ fn main() {
     // let mut b = client_key.encrypt(b);
     let mut s = Vec::with_capacity(MAXLISTLENGTH);
     let mut b = Vec::with_capacity(MAXLISTLENGTH);  // It can be vec![] ? Might be difficult
-
+    
     for i in 0..MAXLISTLENGTH {
         s.push(client_key.encrypt(s_clear[i]));
         b.push(client_key.encrypt(b_clear[i]));
     }
-
     
+
     // Start of timer
     let now = Instant::now();
 
@@ -108,7 +100,4 @@ fn main() {
 
     println!("Result : \n s = {s_clear:?} \n b = {b_clear:?}");
     println!("Times elapsed {elapsed:.2?}");
-
-    // //println!("{result_a}, {result_b}");
-    // //println!("Elapsed: {elapsed:.2?}");
 }
