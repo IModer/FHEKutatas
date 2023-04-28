@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 use std::time::Instant;
 use rand::Rng;
+use tfhe::integer::RadixClientKey;
 use tfhe::integer::{ServerKey, gen_keys_radix, ciphertext::BaseRadixCiphertext};
 use tfhe::shortint::{CiphertextBase, ciphertext::KeyswitchBootstrap};
 use tfhe::shortint::parameters::PARAM_MESSAGE_2_CARRY_2;
@@ -92,8 +93,8 @@ fn min(
         if !server_key.is_add_possible(&mut e, a1) {
             server_key.full_propagate_parallelized(a1);
         }
-        server_key.unchecked_add(&mut e, a1)
 
+        server_key.unchecked_add(&mut e, a1)
     }
 
 fn min2(
@@ -112,32 +113,34 @@ fn min2(
         let mut z2 = server_key.smart_eq_parallelized(a2, b2);
         let mut z3 = server_key.smart_gt_parallelized(a1, b1);
 
-        
         server_key.smart_bitand_assign_parallelized(&mut z2, &mut z3);
         server_key.smart_bitor_assign_parallelized(&mut z1, &mut z2);
         
         //return c1 c2 will be:
-        //c1 = (a1-b1) * z1 + b1
-        //c2 = (a2-b2) * z1 + b2
+        //c1 = (b1 - a1) * z1 + a1
+        //c2 = (b2 - a2) * z1 + a2
         
-        let mut d1 = server_key.smart_sub_parallelized(a1, b1);
+        //d1 = b1 - a1
+        let mut d1 = server_key.smart_sub_parallelized(b1, a1);
+        //e1 = s1 * z1 = (b1 - a1) * z1
         let mut e1 = server_key.smart_mul_parallelized(&mut d1, &mut z1);
 
-
-        if !server_key.is_add_possible(&mut e1, b1) {
-            server_key.full_propagate_parallelized(b1);
+        //c1 = e1 + b1 = (b1 - a1) * z1 + a1
+        if !server_key.is_add_possible(&mut e1, a1) {
+            server_key.full_propagate_parallelized(a1);
         }
-        let c1 = server_key.unchecked_add(&mut e1, b1);
+        let c1 = server_key.unchecked_add(&mut e1, a1);
 
-        
-        let mut d2 = server_key.smart_sub_parallelized(a2, b2);
+        //d2 = b2 - a2
+        let mut d2 = server_key.smart_sub_parallelized(b2, a2);
+        //e2 = d2 * z1 = (b2 - a2) * z1
         let mut e2 = server_key.smart_mul_parallelized(&mut d2, &mut z1);
 
-
-        if !server_key.is_add_possible(&mut e2, b2) {
-            server_key.full_propagate_parallelized(b2);
+        //c2 = e2 + b2 = (b2 - a2) * z1 + a2
+        if !server_key.is_add_possible(&mut e2, a2) {
+            server_key.full_propagate_parallelized(a2);
         }
-        let c2 = server_key.unchecked_add(&mut e2, b2);
+        let c2 = server_key.unchecked_add(&mut e2, a2);
 
         return (c1, c2);
     }
@@ -145,8 +148,9 @@ fn min2(
 fn volume_match(
     s : &mut Vec<Cipertext>,
     b : &mut Vec<Cipertext>,
-    server_key: &ServerKey
-) -> (Vec<Cipertext>, Vec<Cipertext>) 
+    server_key: &ServerKey,
+    //client_key : &RadixClientKey
+)
 {
     let size = 10;
 
@@ -176,25 +180,58 @@ fn volume_match(
 
     let (mut lTT_1 , mut lTT_2) = min2(&mut S_1,&mut S_2,&mut B_1,&mut B_2, server_key);
     
-    // Calculate new s and b <- Parallalise this
+    // let S_1clear : u64 = client_key.decrypt(&S_1);
+    // let S_2clear : u64 = client_key.decrypt(&S_2);
+    // let B_1clear : u64 = client_key.decrypt(&B_1);
+    // let B_2clear : u64 = client_key.decrypt(&B_2);
+    
+    // print!("Debug : \nS : {} {} \nB : {} {}\n", S_1clear, S_2clear, B_1clear, B_2clear);
 
+
+    
+    // Calculate new s and b <- Parallalise this
+    
     let (mut lTT_1c, mut lTT_2c) = (lTT_1.clone(), lTT_2.clone());  //This might actually outweight the gains of paralellism
+    
+    // let lTT_1clear : u64 = client_key.decrypt(&lTT_1);
+    // let lTT_2clear : u64 = client_key.decrypt(&lTT_2);
+
+    // let lTT_1clearc : u64 = client_key.decrypt(&lTT_1c);
+    // let lTT_2clearc : u64 = client_key.decrypt(&lTT_2c);
+
+    // println!("Debug : lTT {} {}", lTT_1clear, lTT_2clearc);
+    // println!("Debug : lTTc {} {}", lTT_1clear, lTT_2clearc);
+
+
     join(
-        ||(for i in 0..size {s[i] = min(&mut S_1,&mut S_2, &mut s[i], server_key);sub(&mut lTT_1 , &mut lTT_2, &mut s[i], server_key);}),
-        ||(for i in 0..size {b[i] = min(&mut B_1,&mut B_2, &mut b[i], server_key);sub(&mut lTT_1c , &mut lTT_2c, &mut b[i], server_key);})
+        ||(for i in 0..size
+                    {
+                        s[i] = min(&mut S_1,&mut S_2, &mut s[i], server_key);
+                        sub(&mut lTT_1 , &mut lTT_2, &mut s[i], server_key);
+                    }),
+        ||(for i in 0..size
+                    {
+                        b[i] = min(&mut B_1,&mut B_2, &mut b[i], server_key);
+                        sub(&mut lTT_1c , &mut lTT_2c, &mut b[i], server_key);
+                    })
     );
 
     // for i in 0..size {
     //     s[i] = min(&mut S_1,&mut S_2, &mut s[i], server_key);
+    //     // let t : u64 = client_key.decrypt(&s[i]);
+    //     // println!("Debug: s[{i}] : {}", t);
     //     sub(&mut lTT_1 , &mut lTT_2, &mut s[i], server_key);
+    //     // let tt1 : u64 = client_key.decrypt(&lTT_1);
+    //     // let tt2 : u64 = client_key.decrypt(&lTT_2);
+    //     // println!("Debug: tt at {i} : {} {}", tt1, tt2);
     // }
+
+    // let (mut lTT_1 , mut lTT_2) = min2(&mut S_1,&mut S_2,&mut B_1,&mut B_2, server_key);
 
     // for i in 0..size {
     //     b[i] = min(&mut B_1,&mut B_2, &mut b[i], server_key);
     //     sub(&mut lTT_1 , &mut lTT_2, &mut b[i], server_key);
     // }
-
-    return (s.to_vec() , b.to_vec());
     
 }
 
@@ -247,7 +284,7 @@ fn main() {
 
     // Call to algo
 
-    volume_match(&mut s, &mut b, &server_key);
+    volume_match(&mut s, &mut b, &server_key, &client_key);
 
     //End of timer
     let elapsed = now.elapsed();
@@ -266,9 +303,12 @@ fn main() {
     
     // Decrypt results retrieve from the server
 
-    for i in 1..MAXLISTLENGTH {
+    //type DebugT = BaseRadixCiphertext<CiphertextBase<BaseRadixCiphertext<CiphertextBase<tfhe::shortint::ciphertext::KeyswitchBootstrap>>>>;
+
+    for i in 0..MAXLISTLENGTH {
         s_clear[i] = client_key.decrypt(&s[i]);
         b_clear[i] = client_key.decrypt(&b[i]);
+        //println!("Debug = {} {}", s_clear[i], b_clear[i]);
     }
 
     // // let result_a1: u64 = client_key.decrypt(&a1);
