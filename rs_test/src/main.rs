@@ -284,7 +284,7 @@ fn main() {
 
     // Call to algo
 
-    volume_match(&mut s, &mut b, &server_key, &client_key);
+    volume_match(&mut s, &mut b, &server_key);
 
     //End of timer
     let elapsed = now.elapsed();
