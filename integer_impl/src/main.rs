@@ -11,11 +11,12 @@ const MAXLISTLENGTH : usize = 10;  //500
 const MAXVALUE : u64 = 10;
 const NUM_BLOCK: usize = 8;
 
-
-fn volume_match(
+fn volume_match
+    (
     s : &mut Vec<Cipertext>,
     b : &mut Vec<Cipertext>,
-    server_key: &ServerKey)
+    server_key: &ServerKey
+    )
 {
     // Init variables
 
@@ -25,15 +26,28 @@ fn volume_match(
     // Sum into S and B in paralell
 
     join(
-        || (for i in 0..MAXLISTLENGTH {if !server_key.is_add_possible(&mut S, &mut s[i]) {
-            server_key.full_propagate_parallelized(&mut S);
-        }
-        server_key.unchecked_add_assign(&mut S, &mut s[i]);}), 
-        || (for i in 0..MAXLISTLENGTH {if !server_key.is_add_possible(&mut B, &mut b[i]) {
-            server_key.full_propagate_parallelized(&mut B);
-        }
-        server_key.unchecked_add_assign(&mut B, &mut b[i]);})
-    );
+        || (
+            for i in 0..MAXLISTLENGTH 
+            {
+                if !server_key.is_add_possible(&mut S, &mut s[i]) 
+                {
+                    server_key.full_propagate_parallelized(&mut S);
+                }
+            server_key.unchecked_add_assign(&mut S, &mut s[i]);
+            }
+            ), 
+        || (
+            for i in 0..MAXLISTLENGTH 
+            {
+                if !server_key.is_add_possible(&mut B, &mut b[i])
+                {
+                server_key.full_propagate_parallelized(&mut B);
+                }
+            server_key.unchecked_add_assign(&mut B, &mut b[i]);
+            }
+            )
+        );
+    
     // Min of S and B
 
     S = server_key.smart_min_parallelized(&mut S, &mut B);
@@ -42,12 +56,25 @@ fn volume_match(
     // Calculate new s and b <- Parallalise this
 
     join(
-        ||(for i in 0..MAXLISTLENGTH {s[i] = server_key.smart_min_parallelized(&mut s[i], &mut S);server_key.smart_sub_assign_parallelized(&mut S, &mut s[i]);}),
-        ||(for i in 0..MAXLISTLENGTH {b[i] = server_key.smart_min_parallelized(&mut b[i], &mut B);server_key.smart_sub_assign_parallelized(&mut B, &mut b[i]);})
+        || (
+            for i in 0..MAXLISTLENGTH
+            {
+                s[i] = server_key.smart_min_parallelized(&mut s[i], &mut S);
+                server_key.smart_sub_assign_parallelized(&mut S, &mut s[i]);
+            }
+        ),
+        || (
+            for i in 0..MAXLISTLENGTH 
+            {
+                b[i] = server_key.smart_min_parallelized(&mut b[i], &mut B);
+                server_key.smart_sub_assign_parallelized(&mut B, &mut b[i]);
+            }
+        )
     );
 }
 
-fn main() {
+fn main()
+{
     // We generate a set of client/server keys, using the default parameters:
     let (client_key, server_key) = gen_keys_radix(&PARAM_MESSAGE_2_CARRY_2, NUM_BLOCK);
 
@@ -100,4 +127,5 @@ fn main() {
 
     println!("Result : \n s = {s_clear:?} \n b = {b_clear:?}");
     println!("Times elapsed {elapsed:.2?}");
+
 }
