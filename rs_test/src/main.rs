@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
 use std::time::Instant;
 use rand::Rng;
-use tfhe::integer::RadixClientKey;
 use tfhe::integer::{ServerKey, gen_keys_radix, ciphertext::BaseRadixCiphertext};
 use tfhe::shortint::{CiphertextBase, ciphertext::KeyswitchBootstrap};
 use tfhe::shortint::parameters::PARAM_MESSAGE_2_CARRY_2;
@@ -206,12 +205,12 @@ fn volume_match(
     join(
         ||(for i in 0..size
                     {
-                        s[i] = min(&mut S_1,&mut S_2, &mut s[i], server_key);
+                        s[i] = min(&mut lTT_1,&mut lTT_2, &mut s[i], server_key);
                         sub(&mut lTT_1 , &mut lTT_2, &mut s[i], server_key);
                     }),
         ||(for i in 0..size
                     {
-                        b[i] = min(&mut B_1,&mut B_2, &mut b[i], server_key);
+                        b[i] = min(&mut lTT_1c,&mut lTT_2c, &mut b[i], server_key);
                         sub(&mut lTT_1c , &mut lTT_2c, &mut b[i], server_key);
                     })
     );
