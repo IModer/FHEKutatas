@@ -45,8 +45,6 @@ pub fn run(s_clear: &mut Vec<u16>, b_clear: &mut Vec<u16>, _NUM_BLOCK: usize) {
 
     println!("Result for high_api_paral : s = {s_clear:?} b = {b_clear:?}");
 
-    
-
 }
 
 

@@ -24,7 +24,7 @@ pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize) {
     let now = Instant::now();
     println!("Running integer_padded_paral ----");
 
-    volume_match(&mut s, &mut b, &server_key);
+    volume_match(&mut s, &mut b, _NUM_BLOCK , &server_key);
 
     let elapsed = now.elapsed();
     println!("Time for the intgere_padded_paral: {elapsed:.2?}");
@@ -40,11 +40,12 @@ pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize) {
 pub fn volume_match(
     s : &mut Vec<Ciphertext>,
     b : &mut Vec<Ciphertext>,
+    NUM_BLOCK: usize,
     server_key: &ServerKey,
     //client_key : &RadixClientKey
 ) {
     // Init variables
-    let NUM_BLOCK: usize = s[0].blocks().len(); //we know this
+    //let NUM_BLOCK: usize = s[0].blocks().len(); //we know this
 
     let mut sell_vol  = server_key.create_trivial_zero_radix(NUM_BLOCK*2);
     let mut buy_vol  = server_key.create_trivial_zero_radix(NUM_BLOCK*2);
