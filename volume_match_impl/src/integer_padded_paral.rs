@@ -13,18 +13,23 @@ pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize) {
     let mut s = Vec::with_capacity(s_clear.len());
     let mut b = Vec::with_capacity(b_clear.len());
 
+    let mut s16 = Vec::with_capacity(s_clear.len());
+    let mut b16 = Vec::with_capacity(b_clear.len());
+
     for i in 0..s_clear.len() {
         s.push(client_key.encrypt(s_clear[i]));
+        s16.push(fromNto2Nbit(&mut s[i], &server_key));
     }
 
     for i in 0..s_clear.len() {
         b.push(client_key.encrypt(b_clear[i]));
+        b16.push(fromNto2Nbit(&mut b[i], &server_key));
     }
 
     let now = Instant::now();
     println!("----------------------\nRunning integer_padded_paral");
 
-    volume_match(&mut s, &mut b, _NUM_BLOCK , &server_key);
+    volume_match(&mut s, &mut b, &mut s16, &mut b16, _NUM_BLOCK , &server_key);
 
     let elapsed = now.elapsed();
     println!("Time for the intgere_padded_paral: {elapsed:.2?}\n----------------------");
@@ -40,6 +45,8 @@ pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize) {
 pub fn volume_match(
     s : &mut Vec<Ciphertext>,
     b : &mut Vec<Ciphertext>,
+    s16 : &mut Vec<Ciphertext>,
+    b16 : &mut Vec<Ciphertext>,
     NUM_BLOCK: usize,
     server_key: &ServerKey,
     //client_key : &RadixClientKey
@@ -79,7 +86,8 @@ pub fn volume_match(
         {
             let now2 = Instant::now();
 
-            s[i] = min(&mut sell_vol, &mut s[i], server_key);
+            //s[i] = min(&mut sell_vol, &mut s[i], server_key);
+            s[i] = from2NtoNbit(&mut server_key.smart_min_parallelized(&mut sell_vol, &mut s16[i]));
 
             min_dur += now2.elapsed();
             let now2 = Instant::now();
@@ -90,7 +98,9 @@ pub fn volume_match(
         }),
         ||(for i in 0..b.len()
         {
-            b[i] = min(&mut buy_vol, &mut b[i], server_key);
+            //b[i] = min(&mut buy_vol, &mut b[i], server_key);
+            b[i] = from2NtoNbit(&mut server_key.smart_min_parallelized(&mut buy_vol, &mut b16[i]));
+
             sub(&mut buy_vol,&mut b[i], server_key);
         })
     );
