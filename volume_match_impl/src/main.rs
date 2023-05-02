@@ -63,11 +63,11 @@ fn main() {
 
     integer_u16_paral::run(&mut s_clear64_16, &mut b_clear64_16, num_block);    
 
-    high_api::run(&mut s_clear, &mut b_clear, num_block);
+    //high_api::run(&mut s_clear, &mut b_clear, num_block);
     
     integer_padded_paral::run(&mut s_clear64_p, &mut b_clear64_p, num_block);
     
-    integer_paral::run(&mut s_clear64, &mut b_clear64, num_block, MAXLISTLENGTH);
+    //integer_paral::run(&mut s_clear64, &mut b_clear64, num_block, MAXLISTLENGTH);
 
 }
 
