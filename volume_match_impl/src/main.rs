@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)]
 #![allow(unused_imports)]
+#![allow(unused_assignments)]
 use std::time::Instant;
 use rand::Rng;
 use tfhe::integer;
@@ -30,8 +31,8 @@ fn main() {
     let mut b_clear : Vec<u16> = vec![0; MAXLISTLENGTH];
 
     //u16 for integer_u16
-    let mut s_clear16 : Vec<u64> = vec![0; MAXLISTLENGTH];
-    let mut b_clear16 : Vec<u64> = vec![0; MAXLISTLENGTH];
+    let mut s_clear64_16 : Vec<u64> = vec![0; MAXLISTLENGTH];
+    let mut b_clear64_16 : Vec<u64> = vec![0; MAXLISTLENGTH];
     
     //u64 for integer_padded 
     let mut s_clear64_p : Vec<u64> = vec![0; MAXLISTLENGTH];
@@ -46,21 +47,21 @@ fn main() {
 
     fillWithRandomu64(&mut s_clear64, &mut b_clear64);
 
-    s_clear16 = s_clear64.clone();
-    b_clear16 = b_clear64.clone();
+    s_clear64_16 = s_clear64.clone();
+    b_clear64_16 = b_clear64.clone();
 
     s_clear64_p = s_clear64.clone();
     b_clear64_p = b_clear64.clone();
     
 
-    //println!("Input for integer_u16_paral : \n s = {s_clear16:?} \n b = {b_clear16:?}");
+    //println!("Input for integer_u16_paral : \n s = {s_clear64_16:?} \n b = {b_clear64_16:?}");
     //println!("Input for high_api_paral : \n s = {s_clear64:?} \n b = {b_clear64:?}");
     //println!("Input for integer_padded_paral : \n s = {s_clear64_p:?} \n b = {b_clear64_p:?}");
     //println!("Input for integer_paral : \n s = {s_clear:?} \n b = {b_clear:?}");
 
     // Call to algos  //we time inside
 
-    integer_u16_paral::run(&mut s_clear16, &mut b_clear16, num_block);    
+    integer_u16_paral::run(&mut s_clear64_16, &mut b_clear64_16, num_block);    
 
     high_api::run(&mut s_clear, &mut b_clear, num_block);
     
