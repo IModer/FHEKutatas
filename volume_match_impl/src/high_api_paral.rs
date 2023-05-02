@@ -1,9 +1,9 @@
 use tfhe::{ConfigBuilder, generate_keys, set_server_key, FheUint16};
 use tfhe::prelude::*;
-use std::time::Instant;
+use std::time::{Instant, Duration};
 use rand::Rng;
 
-pub fn setup(s_clear: &mut Vec<u16>, b_clear: &mut Vec<u16>, _NUM_BLOCK: usize) {
+pub fn run(s_clear: &mut Vec<u16>, b_clear: &mut Vec<u16>, _NUM_BLOCK: usize) {
     let config = ConfigBuilder::all_disabled()
         .enable_default_uint16()
         .build();
@@ -26,11 +26,12 @@ pub fn setup(s_clear: &mut Vec<u16>, b_clear: &mut Vec<u16>, _NUM_BLOCK: usize) 
     }
 
     let now = Instant::now();
+    println!("Running high_api_paral ----");
 
     volume_match(&mut s, &mut b);
 
     let elapsed = now.elapsed();
-    println!("Time for the high api implementation: {elapsed:.2?}");
+    println!("Time for the high_api_paral : {elapsed:.2?}");
 
     for i in 0..s_clear.len()
     {
@@ -42,6 +43,10 @@ pub fn setup(s_clear: &mut Vec<u16>, b_clear: &mut Vec<u16>, _NUM_BLOCK: usize) 
         b_clear[i] = b[i].decrypt(&client_key);
     }
 
+    println!("Result for high_api_paral : s = {s_clear:?} b = {b_clear:?}");
+
+    
+
 }
 
 
@@ -49,7 +54,8 @@ fn volume_match(s: &mut Vec<FheUint16>, b: &mut Vec<FheUint16>){
     let mut sell_vol = FheUint16::encrypt_trivial(0u16);
     let mut buy_vol = FheUint16::encrypt_trivial(0u16);
 
-    //Sum s and b
+    //Sum into sell_vol and buy_vol 
+    let now = Instant::now();
 
     for i in 0..s.len() {
         sell_vol = sell_vol + &s[i];
@@ -58,18 +64,46 @@ fn volume_match(s: &mut Vec<FheUint16>, b: &mut Vec<FheUint16>){
         buy_vol = buy_vol + &b[i];
     }
 
+    let elapsed = now.elapsed();
+    println!("high_api_paral : Summing s and b: {elapsed:.2?}");
+   
+
     //S functions now as the first leftvol/transvol B as the second
+    let now = Instant::now();
+    
     sell_vol = sell_vol.min(&buy_vol);
     buy_vol = sell_vol.clone();
 
+    let elapsed = now.elapsed();
+    println!("high_api_paral : Setting up leftvols: {elapsed:.2?}");
+
+    //Calculate new s and b
+
+    let mut min_dur = Duration::new(0,0);
+    let mut sub_dur = Duration::new(0,0);
 
     for i in 0..s.len() {
+        let now2 = Instant::now();
+
         s[i] = s[i].min(&sell_vol);
+
+        min_dur += now2.elapsed();
+        let now2 = Instant::now();
+
         sell_vol = sell_vol - &s[i];
+
+        sub_dur += now2.elapsed();
     }
 
     for i in 0..b.len() {
         b[i] = b[i].min(&buy_vol);
         buy_vol = buy_vol - &b[i];
     }
+
+    let elapsed = now.elapsed();
+    
+    println!("integer_padded_paral : Subtracting only s: {sub_dur:.2?}");
+    println!("integer_padded_paral : Min only s: {min_dur:.2?}");
+    println!("integer_padded_paral : Subtracting and min: {elapsed:.2?}");
+
 }

@@ -1,5 +1,4 @@
-use std::time::Instant;
-use rand::Rng;
+use std::time::{Instant, Duration};
 use tfhe::integer::{ServerKey, gen_keys_radix, ciphertext::BaseRadixCiphertext};
 use tfhe::shortint::{CiphertextBase, ciphertext::KeyswitchBootstrap};
 use tfhe::shortint::parameters::PARAM_MESSAGE_2_CARRY_2;
@@ -7,10 +6,41 @@ use rayon::{join};
 
 type Ciphertext = BaseRadixCiphertext<CiphertextBase<KeyswitchBootstrap>>;
 
+// TODO: write this
+pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize, size : usize) {
+
+    let (client_key, server_key) = gen_keys_radix(&PARAM_MESSAGE_2_CARRY_2, _NUM_BLOCK);
+    let mut s = Vec::with_capacity(s_clear.len());
+    let mut b = Vec::with_capacity(b_clear.len());
+
+    for i in 0..s_clear.len() {
+        s.push(client_key.encrypt(s_clear[i]));
+    }
+
+    for i in 0..s_clear.len() {
+        b.push(client_key.encrypt(b_clear[i]));
+    }
+
+    let now = Instant::now();
+    println!("Running integer_paral ----");
+
+    volume_match(&mut s, &mut b, &server_key, size);
+
+    let elapsed = now.elapsed();
+    println!("Time for the integer_paral: {elapsed:.2?}");
+
+    for i in 0..s.len() {
+        s_clear[i] = client_key.decrypt(&s[i]);
+    }
+    for i in 0..b.len() {
+        b_clear[i] = client_key.decrypt(&b[i]);
+    }
+}
+
 fn add(
     a1: &mut Ciphertext,
     a2: &mut Ciphertext,
-    b: &mut Ciphertext,
+    b: & Ciphertext,
     server_key: &ServerKey) {
         let mut s = a1.clone(); 
 
@@ -129,9 +159,8 @@ fn volume_match(
     s : &mut Vec<Ciphertext>,
     b : &mut Vec<Ciphertext>,
     server_key: &ServerKey,
-    //client_key : &RadixClientKey
+    size : usize
 ) {
-    let size = 10;
 
     // Init variables
 
@@ -141,75 +170,57 @@ fn volume_match(
     let mut B_2  = server_key.create_trivial_zero_radix(4);
 
     // Sum into S and B in paralell
+    let now = Instant::now();
 
     join(
         || (for i in 0..size {add(&mut S_1, &mut S_2, &mut s[i], server_key);}), 
         || (for i in 0..size {add(&mut B_1, &mut B_2, &mut b[i], server_key);})
     );
 
-    // for i in 0..size {
-    //     add(&mut S_1, &mut S_2, &mut s[i], server_key);
-    // }
-
-    // for i in 0..size {
-    //     add(&mut B_1, &mut B_2, &mut b[i], server_key);
-    // }
+    let elapsed = now.elapsed();
+    println!("integer_paral : Summing s and b: {elapsed:.2?}");
+    
 
     // Min of S and B
+    let now = Instant::now();
 
     let (mut lTT_1 , mut lTT_2) = min2(&mut S_1,&mut S_2,&mut B_1,&mut B_2, server_key);
-    
-    // let S_1clear : u64 = client_key.decrypt(&S_1);
-    // let S_2clear : u64 = client_key.decrypt(&S_2);
-    // let B_1clear : u64 = client_key.decrypt(&B_1);
-    // let B_2clear : u64 = client_key.decrypt(&B_2);
-    
-    // print!("Debug : \nS : {} {} \nB : {} {}\n", S_1clear, S_2clear, B_1clear, B_2clear);
-
-
-    
-    // Calculate new s and b <- Parallalise this
-    
     let (mut lTT_1c, mut lTT_2c) = (lTT_1.clone(), lTT_2.clone());  //This might actually outweight the gains of paralellism
     
-    // let lTT_1clear : u64 = client_key.decrypt(&lTT_1);
-    // let lTT_2clear : u64 = client_key.decrypt(&lTT_2);
+    let elapsed = now.elapsed();
+    println!("integer_paral : Setting up leftvols: {elapsed:.2?}");
 
-    // let lTT_1clearc : u64 = client_key.decrypt(&lTT_1c);
-    // let lTT_2clearc : u64 = client_key.decrypt(&lTT_2c);
-
-    // println!("Debug : lTT {} {}", lTT_1clear, lTT_2clearc);
-    // println!("Debug : lTTc {} {}", lTT_1clear, lTT_2clearc);
-
+    // Calculate new s and b <- Parallalise this
+    
+    let mut min_dur = Duration::new(0,0);
+    let mut sub_dur = Duration::new(0,0);
 
     join(
         ||(for i in 0..size
                     {
-                        s[i] = min(&mut S_1,&mut S_2, &mut s[i], server_key);
+                        let now2 = Instant::now();
+
+                        s[i] = min(&mut lTT_1,&mut lTT_2, &mut s[i], server_key);
+                        
+                        min_dur += now2.elapsed();
+                        let now2 = Instant::now();
+                        
                         sub(&mut lTT_1 , &mut lTT_2, &mut s[i], server_key);
+                    
+                        sub_dur += now2.elapsed();
                     }),
         ||(for i in 0..size
                     {
-                        b[i] = min(&mut B_1,&mut B_2, &mut b[i], server_key);
+                        b[i] = min(&mut lTT_1c,&mut lTT_2c, &mut b[i], server_key);
                         sub(&mut lTT_1c , &mut lTT_2c, &mut b[i], server_key);
                     })
     );
-
-    // for i in 0..size {
-    //     s[i] = min(&mut S_1,&mut S_2, &mut s[i], server_key);
-    //     // let t : u64 = client_key.decrypt(&s[i]);
-    //     // println!("Debug: s[{i}] : {}", t);
-    //     sub(&mut lTT_1 , &mut lTT_2, &mut s[i], server_key);
-    //     // let tt1 : u64 = client_key.decrypt(&lTT_1);
-    //     // let tt2 : u64 = client_key.decrypt(&lTT_2);
-    //     // println!("Debug: tt at {i} : {} {}", tt1, tt2);
-    // }
-
-    // let (mut lTT_1 , mut lTT_2) = min2(&mut S_1,&mut S_2,&mut B_1,&mut B_2, server_key);
-
-    // for i in 0..size {
-    //     b[i] = min(&mut B_1,&mut B_2, &mut b[i], server_key);
-    //     sub(&mut lTT_1 , &mut lTT_2, &mut b[i], server_key);
-    // }
     
+    let elapsed = now.elapsed();
+    
+    println!("integer_paral : Subtracting only s: {sub_dur:.2?}");
+    println!("integer_paral : Min only s: {min_dur:.2?}");
+    println!("integer_paral : Subtracting and min: {elapsed:.2?}");
+
+
 }

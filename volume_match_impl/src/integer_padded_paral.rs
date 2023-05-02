@@ -6,10 +6,9 @@ use tfhe::integer::ciphertext::IntegerCiphertext;
 use tfhe::shortint::parameters::PARAM_MESSAGE_2_CARRY_2;
 use std::time::{Instant, Duration};
 
-
 type Ciphertext = BaseRadixCiphertext<CiphertextBase<KeyswitchBootstrap>>;
 
-pub fn setup(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize) {
+pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize) {
     let (client_key, server_key) = gen_keys_radix(&PARAM_MESSAGE_2_CARRY_2, _NUM_BLOCK);
     let mut s = Vec::with_capacity(s_clear.len());
     let mut b = Vec::with_capacity(b_clear.len());
@@ -23,11 +22,12 @@ pub fn setup(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize) 
     }
 
     let now = Instant::now();
+    println!("Running integer_padded_paral ----");
 
     volume_match(&mut s, &mut b, &server_key);
 
     let elapsed = now.elapsed();
-    println!("Time for the whole alg: {elapsed:.2?}");
+    println!("Time for the intgere_padded_paral: {elapsed:.2?}");
 
     for i in 0..s.len() {
         s_clear[i] = client_key.decrypt(&s[i]);
@@ -44,9 +44,11 @@ pub fn volume_match(
     //client_key : &RadixClientKey
 ) {
     // Init variables
-    let NUM_BLOCK: usize = s[0].blocks().len();
+    let NUM_BLOCK: usize = s[0].blocks().len(); //we know this
+
     let mut sell_vol  = server_key.create_trivial_zero_radix(NUM_BLOCK*2);
     let mut buy_vol  = server_key.create_trivial_zero_radix(NUM_BLOCK*2);
+    
     // Sum into S and B in paralell
     let now = Instant::now();
 
@@ -56,7 +58,8 @@ pub fn volume_match(
     );
 
     let elapsed = now.elapsed();
-    println!("Summing s and b: {elapsed:.2?}");
+    println!("integer_padded_paral : Summing s and b: {elapsed:.2?}");
+    
     // Min of S and B
     let now = Instant::now();
 
@@ -64,10 +67,12 @@ pub fn volume_match(
     buy_vol = sell_vol.clone();
     
     let elapsed = now.elapsed();
-    println!("Setting up leftvols: {elapsed:.2?}");
+    println!("integer_padded_paral : Setting up leftvols: {elapsed:.2?}");
+    
     // Calculate new s and b <- Parallalise this
     let mut min_dur = Duration::new(0,0);
     let mut sub_dur = Duration::new(0,0);
+    
     join(
         ||(for i in 0..s.len()
         {
@@ -88,10 +93,12 @@ pub fn volume_match(
             sub(&mut buy_vol,&mut b[i], server_key);
         })
     );
+    
     let elapsed = now.elapsed();
-    println!("Subtracting only s: {sub_dur:.2?}");
-    println!("Min only s: {min_dur:.2?}");
-    println!("Subtracting and min: {elapsed:.2?}");
+    
+    println!("integer_padded_paral : Subtracting only s: {sub_dur:.2?}");
+    println!("integer_padded_paral : Min only s: {min_dur:.2?}");
+    println!("integer_padded_paral : Subtracting and min: {elapsed:.2?}");
 
 }
 
