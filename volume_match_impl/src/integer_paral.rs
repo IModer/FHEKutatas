@@ -22,12 +22,12 @@ pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize, si
     }
 
     let now = Instant::now();
-    println!("Running integer_paral ----");
+    println!("----------------------\nRunning integer_paral");
 
     volume_match(&mut s, &mut b, &server_key, size);
 
     let elapsed = now.elapsed();
-    println!("Time for the integer_paral: {elapsed:.2?}");
+    println!("Time for the integer_paral: {elapsed:.2?}\n----------------------");
 
     for i in 0..s.len() {
         s_clear[i] = client_key.decrypt(&s[i]);
