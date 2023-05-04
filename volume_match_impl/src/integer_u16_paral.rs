@@ -8,7 +8,7 @@ use rayon::{join};
 type Cipertext = BaseRadixCiphertext<CiphertextBase<KeyswitchBootstrap>>;
 
 const MAXLISTLENGTH : usize = 10;  //500
-const MAXVALUE : u64 = 10;
+const MAXVALUE : u64 = 5;
 
 pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize)
 {

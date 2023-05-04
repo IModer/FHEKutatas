@@ -62,13 +62,13 @@ fn main() {
     // Call to algos  //we time inside
 
     integer_u16_paral::run(&mut s_clear64_16, &mut b_clear64_16, num_block);    
-
-    //high_api::run(&mut s_clear, &mut b_clear, num_block);
-    
+    drop(s_clear64_16);drop(b_clear64_16);
+    high_api::run(&mut s_clear, &mut b_clear, num_block);
+    drop(s_clear);drop(b_clear);
     integer_padded_paral::run(&mut s_clear64_p, &mut b_clear64_p, num_block);
-    
-    //integer_paral::run(&mut s_clear64, &mut b_clear64, num_block, MAXLISTLENGTH);
-
+    drop(s_clear64_p);drop(b_clear64_p);
+    integer_paral::run(&mut s_clear64, &mut b_clear64, num_block, MAXLISTLENGTH);
+    drop(s_clear64);drop(b_clear64);
 }
 
 
