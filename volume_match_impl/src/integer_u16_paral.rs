@@ -7,6 +7,8 @@ use tfhe::shortint::parameters::PARAM_MESSAGE_2_CARRY_2;
 use rayon::{join};
 type Cipertext = BaseRadixCiphertext<CiphertextBase<KeyswitchBootstrap>>;
 
+use crate::logging;
+
 const MAXLISTLENGTH : usize = 10;  //500
 const MAXVALUE : u64 = 5;
 
