@@ -33,7 +33,9 @@ pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize) {
     volume_match(&mut s, &mut b, &mut s16, &mut b16, _NUM_BLOCK , &server_key);
 
     let elapsed = now.elapsed();
-    println!("Time for the intgere_padded_paral: {elapsed:.2?}\n----------------------");
+    
+    logging::log("integer_padded_paral total", elapsed);
+    println!("Time for the integer_padded_paral: {elapsed:.2?}\n----------------------");
 
     for i in 0..s.len() {
         s_clear[i] = client_key.decrypt(&s[i]);
@@ -67,6 +69,7 @@ pub fn volume_match(
     );
 
     let elapsed = now.elapsed();
+    logging::log("integer_padded_paral summing", elapsed);
     println!("integer_padded_paral : Summing s and b: {elapsed:.2?}");
     
     // Min of S and B
@@ -76,6 +79,7 @@ pub fn volume_match(
     buy_vol = sell_vol.clone();
     
     let elapsed = now.elapsed();
+    logging::log("integer_padded_paral leftvols", elapsed);
     println!("integer_padded_paral : Setting up leftvols: {elapsed:.2?}");
     
     // Calculate new s and b <- Parallalise this
@@ -111,6 +115,7 @@ pub fn volume_match(
     println!("integer_padded_paral : Subtracting only s: {sub_dur:.2?}");
     println!("integer_padded_paral : Min only s: {min_dur:.2?}");
     println!("integer_padded_paral : Subtracting and min: {elapsed:.2?}");
+    logging::log("integer_padded_paral loop", elapsed);
 
 }
 

@@ -33,7 +33,7 @@ pub fn run(s_clear: &mut Vec<u16>, b_clear: &mut Vec<u16>, _NUM_BLOCK: usize) {
 
     let elapsed = now.elapsed();
     
-    logging::log("high_api", elapsed);
+    logging::log("high_api total", elapsed);
     println!("Time for the high_api : {elapsed:.2?}");
 
     for i in 0..s_clear.len()
@@ -66,6 +66,7 @@ fn volume_match(s: &mut Vec<FheUint16>, b: &mut Vec<FheUint16>){
     }
 
     let elapsed = now.elapsed();
+    logging::log("high_api summing", elapsed);
     println!("high_api : Summing s and b: {elapsed:.2?}");
    
 
@@ -76,6 +77,7 @@ fn volume_match(s: &mut Vec<FheUint16>, b: &mut Vec<FheUint16>){
     buy_vol = sell_vol.clone();
 
     let elapsed = now.elapsed();
+    logging::log("high_api leftvols", elapsed);
     println!("high_api : Setting up leftvols: {elapsed:.2?}");
 
     //Calculate new s and b
@@ -106,5 +108,6 @@ fn volume_match(s: &mut Vec<FheUint16>, b: &mut Vec<FheUint16>){
     println!("high_api : Subtracting only s: {sub_dur:.2?}");
     println!("high_api : Min only s: {min_dur:.2?}");
     println!("high_api : Subtracting and min: {elapsed:.2?}");
+    logging::log("high_api loop", elapsed);
 
 }
