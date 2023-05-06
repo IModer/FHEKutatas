@@ -3,6 +3,7 @@ use tfhe::integer::{ServerKey, gen_keys_radix, ciphertext::BaseRadixCiphertext};
 use tfhe::shortint::{CiphertextBase, ciphertext::KeyswitchBootstrap};
 use tfhe::shortint::parameters::PARAM_MESSAGE_2_CARRY_2;
 use rayon::{join};
+use crate::logging;
 
 type Ciphertext = BaseRadixCiphertext<CiphertextBase<KeyswitchBootstrap>>;
 

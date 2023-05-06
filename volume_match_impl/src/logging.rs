@@ -1,8 +1,9 @@
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::string;
+use std::time::Duration;
 
-fn log(name : String , time : u64)
+pub fn log(name : &str, time : Duration)
 {
     let mut file = OpenOptions::new()
     .create(true)
@@ -10,7 +11,7 @@ fn log(name : String , time : u64)
     .open("runtime.log")
     .unwrap();
     
-    if let Err(e) = writeln!(file, "LOG: {} {} ", name, time) {
+    if let Err(e) = writeln!(file, "LOG: {} {:.4?} ", name, time) {
     eprintln!("Couldn't write to file: {}", e);
     }
 }

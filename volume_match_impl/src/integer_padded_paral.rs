@@ -5,6 +5,7 @@ use rayon::{join};
 use tfhe::integer::ciphertext::IntegerCiphertext;
 use tfhe::shortint::parameters::PARAM_MESSAGE_2_CARRY_2;
 use std::time::{Instant, Duration};
+use crate::logging;
 
 type Ciphertext = BaseRadixCiphertext<CiphertextBase<KeyswitchBootstrap>>;
 

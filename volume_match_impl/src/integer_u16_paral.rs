@@ -32,6 +32,7 @@ pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize)
     volume_match(&mut s, &mut b, &server_key, _NUM_BLOCK);
 
     let elapsed = now.elapsed();
+    logging::log("integer_u16_paral", elapsed);
     println!("Time for the integer_u16_paral: {elapsed:.2?}\n----------------------");
 
     for i in 0..s.len() {

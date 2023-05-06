@@ -2,6 +2,7 @@ use tfhe::{ConfigBuilder, generate_keys, set_server_key, FheUint16};
 use tfhe::prelude::*;
 use std::time::{Instant, Duration};
 use rand::Rng;
+use crate::logging;
 
 pub fn run(s_clear: &mut Vec<u16>, b_clear: &mut Vec<u16>, _NUM_BLOCK: usize) {
     let config = ConfigBuilder::all_disabled()
@@ -31,6 +32,8 @@ pub fn run(s_clear: &mut Vec<u16>, b_clear: &mut Vec<u16>, _NUM_BLOCK: usize) {
     volume_match(&mut s, &mut b);
 
     let elapsed = now.elapsed();
+    
+    logging::log("high_api", elapsed);
     println!("Time for the high_api : {elapsed:.2?}");
 
     for i in 0..s_clear.len()
