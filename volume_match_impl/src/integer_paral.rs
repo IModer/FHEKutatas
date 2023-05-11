@@ -23,13 +23,13 @@ pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize, si
     }
 
     let now = Instant::now();
-    println!("----------------------\nRunning integer_paral");
+    //println!("----------------------\nRunning integer_paral");
 
     volume_match(&mut s, &mut b, &server_key, size);
 
     let elapsed = now.elapsed();
     logging::log("integer_paral total", elapsed);
-    println!("Time for the integer_paral: {elapsed:.2?}\n----------------------");
+    //println!("Time for the integer_paral: {elapsed:.2?}\n----------------------");
 
     for i in 0..s.len() {
         s_clear[i] = client_key.decrypt(&s[i]);
@@ -181,7 +181,7 @@ fn volume_match(
 
     let elapsed = now.elapsed();
     logging::log("integer_paral summing", elapsed);
-    println!("integer_paral : Summing s and b: {elapsed:.2?}");
+    //println!("integer_paral : Summing s and b: {elapsed:.2?}");
     
 
     // Min of S and B
@@ -192,7 +192,7 @@ fn volume_match(
     
     let elapsed = now.elapsed();
     logging::log("integer_paral leftvols", elapsed);
-    println!("integer_paral : Setting up leftvols: {elapsed:.2?}");
+    //println!("integer_paral : Setting up leftvols: {elapsed:.2?}");
 
     // Calculate new s and b <- Parallalise this
     
@@ -222,9 +222,9 @@ fn volume_match(
     
     let elapsed = now.elapsed();
     
-    println!("integer_paral : Subtracting only s: {sub_dur:.2?}");
-    println!("integer_paral : Min only s: {min_dur:.2?}");
-    println!("integer_paral : Subtracting and min: {elapsed:.2?}");
+    //println!("integer_paral : Subtracting only s: {sub_dur:.2?}");
+    //println!("integer_paral : Min only s: {min_dur:.2?}");
+    //println!("integer_paral : Subtracting and min: {elapsed:.2?}");
     logging::log("integer_paral loop", elapsed);
 
 
