@@ -91,8 +91,7 @@ pub fn volume_match(
             //let now2 = Instant::now();
 
             //s[i] = min(&mut sell_vol, &mut s[i], server_key);
-            //s16[i] = server_key.smart_min_parallelized(&mut s16[i], &mut sell_vol);
-            s16[i] = min(&mut sell_vol, &mut s16[i], server_key);
+            s16[i] = server_key.smart_min_parallelized(&mut s16[i], &mut sell_vol);
             s[i] = from2NtoNbit(&mut s16[i]);
 
             //min_dur += now2.elapsed();
