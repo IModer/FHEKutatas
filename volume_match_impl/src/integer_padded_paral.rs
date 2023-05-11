@@ -1,4 +1,6 @@
 #![allow(non_snake_case)]
+use tfhe::boolean::client_key;
+use tfhe::integer::RadixClientKey;
 use tfhe::integer::{ServerKey, gen_keys_radix,  ciphertext::BaseRadixCiphertext};
 use tfhe::shortint::{CiphertextBase, ciphertext::KeyswitchBootstrap};
 use rayon::{join};
@@ -19,12 +21,12 @@ pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize) {
 
     for i in 0..s_clear.len() {
         s.push(client_key.encrypt(s_clear[i]));
-        s16.push(fromNto2Nbit(&mut s[i], &server_key));
+        s16.push(fromNto2Nbit(&s[i], &server_key));
     }
 
     for i in 0..s_clear.len() {
         b.push(client_key.encrypt(b_clear[i]));
-        b16.push(fromNto2Nbit(&mut b[i], &server_key));
+        b16.push(fromNto2Nbit(&b[i], &server_key));
     }
 
     let now = Instant::now();
@@ -34,6 +36,8 @@ pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize) {
 
     let elapsed = now.elapsed();
     
+    println!("{:?}", elapsed);
+
     logging::log("integer_padded_paral total", elapsed);
     //println!("Time for the integer_padded_paral: {elapsed:.2?}\n----------------------");
 
@@ -51,12 +55,10 @@ pub fn volume_match(
     s16 : &mut Vec<Ciphertext>,
     b16 : &mut Vec<Ciphertext>,
     NUM_BLOCK: usize,
-    server_key: &ServerKey,
-    //client_key : &RadixClientKey
+    server_key: &ServerKey
+    //client_key: &RadixClientKey
 ) {
     // Init variables
-    //let NUM_BLOCK: usize = s[0].blocks().len(); //we know this
-
     let mut sell_vol  = server_key.create_trivial_zero_radix(NUM_BLOCK*2);
     let mut buy_vol  = server_key.create_trivial_zero_radix(NUM_BLOCK*2);
     
@@ -83,23 +85,24 @@ pub fn volume_match(
     //println!("integer_padded_paral : Setting up leftvols: {elapsed:.2?}");
     
     // Calculate new s and b <- Parallalise this
-    //let mut min_dur = Duration::new(0,0);
-    //let mut sub_dur = Duration::new(0,0);
+    let mut min_dur = Duration::new(0,0);
+    let mut sub_dur = Duration::new(0,0);
+    let now = Instant::now();
     
     join(
         ||(for i in 0..s.len()
         {
-            //let now2 = Instant::now();
+            let now2 = Instant::now();
 
             //s[i] = min(&mut sell_vol, &mut s[i], server_key);
             s[i] = from2NtoNbit(&mut server_key.smart_min_parallelized(&mut sell_vol, &mut s16[i]));
 
-            //min_dur += now2.elapsed();
-            //let now2 = Instant::now();
+            min_dur += now2.elapsed();
+            let now2 = Instant::now();
 
             sub(&mut sell_vol, &mut s[i], server_key);
 
-            //sub_dur += now2.elapsed();
+            sub_dur += now2.elapsed();
         }),
         ||(for i in 0..b.len()
         {
@@ -110,16 +113,16 @@ pub fn volume_match(
         })
     );
     
-    //let elapsed = now.elapsed();
+    let elapsed = now.elapsed();
     
-    //println!("integer_padded_paral : Subtracting only s: {sub_dur:.2?}");
-    //println!("integer_padded_paral : Min only s: {min_dur:.2?}");
+    println!("integer_padded_paral : Subtracting only s: {sub_dur:?}");
+    println!("integer_padded_paral : Min only s: {min_dur:?}");
     //println!("integer_padded_paral : Subtracting and min: {elapsed:.2?}");
-    //logging::log("integer_padded_paral loop", elapsed);
+    logging::log("integer_padded_paral loop", elapsed);
 
 }
 
-fn fromNto2Nbit(x: &mut Ciphertext, server_key: &ServerKey) -> Ciphertext
+fn fromNto2Nbit(x: &Ciphertext, server_key: &ServerKey) -> Ciphertext
 {
     let NUM_BLOCK: usize = x.blocks().len();
     let temp: Ciphertext = server_key.create_trivial_zero_radix(NUM_BLOCK);
@@ -157,32 +160,30 @@ fn sub(
         /*let mut v: Vec<u64> = Vec::new();
         v.push(client_key.decrypt(a));
         v.push(client_key.decrypt(b));*/
-        //let mut b16 = from8to16bit(b, server_key);
-        server_key.smart_sub_assign_parallelized(a, b);
-        server_key.smart_scalar_add_assign(a, 255*256);
-        /*v.push(client_key.decrypt(a));
 
-        println!("a: {} b: {} a-b: {}", v[0], v[1], v[2]);*/
+        if !server_key.is_sub_possible(a, b) || !server_key.is_neg_possible(b) {
+            server_key.full_propagate_parallelized(b);
+        }
+        if !server_key.is_sub_possible(a, b) {
+            server_key.full_propagate_parallelized(a);
+        }
+
+        server_key.unchecked_sub_assign(a, b);
+        //server_key.smart_scalar_add_assign_parallelized(a, 255*256);
+        server_key.smart_scalar_sub_assign_parallelized(a, 256);
+
+        /*v.push(client_key.decrypt(a));
+        println!("a: {}, b: {}, a-b: {}", v[0], v[1], v[2]);*/
     }
 
 fn min(
     a: &mut Ciphertext,
     b: &mut Ciphertext,
     server_key: &ServerKey,
-    //client_key: &RadixClientKey
 ) -> Ciphertext {
         let mut b16 = fromNto2Nbit(b, server_key);
 
         let mut min16 = server_key.smart_min_parallelized(a, &mut b16);
         let min8: Ciphertext = from2NtoNbit(&mut min16);
-
-        /*let mut v: Vec<u64> = Vec::new();
-        
-        v.push(client_key.decrypt(a));
-        v.push(client_key.decrypt(b));
-        v.push(client_key.decrypt(&mut b16));
-        v.push(client_key.decrypt(&min8));
-        println!("a: {} b: {} b16: {} min: {}", v[0], v[1], v[2], v[3]);*/
-
         min8
     }
