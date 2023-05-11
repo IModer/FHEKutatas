@@ -1,14 +1,8 @@
 #![allow(non_snake_case)]
-#![allow(dead_code)]
-#![allow(unused_imports)]
 #![allow(unused_assignments)]
-use std::time::Instant;
+#![allow(unused_variables)]
+#![allow(dead_code)]
 use rand::Rng;
-use tfhe::integer;
-use tfhe::integer::{ServerKey, gen_keys_radix, ciphertext::BaseRadixCiphertext};
-use tfhe::shortint::{CiphertextBase, ciphertext::KeyswitchBootstrap};
-use tfhe::shortint::parameters::PARAM_MESSAGE_2_CARRY_2;
-use rayon::{join};
 
 pub mod integer_padded_paral;
 pub mod high_api;
@@ -16,10 +10,8 @@ pub mod integer_paral;
 pub mod integer_u16_paral;
 pub mod logging;
 
-type Ciphertext = BaseRadixCiphertext<CiphertextBase<KeyswitchBootstrap>>;
-
-const MAXLISTLENGTH : usize = 10; //500;
-const MAXVALUE : u16 = 5; //100;
+const MAXLISTLENGTH : usize = 500; //500;
+const MAXVALUE : u16 = 100; //100;
 
 fn main() {
     for _ in 1..2 {
@@ -52,7 +44,7 @@ fn setupAndRun()
     let mut s_clear64 : Vec<u64> = vec![0; MAXLISTLENGTH];
     let mut b_clear64 : Vec<u64> = vec![0; MAXLISTLENGTH];
     
-    //Fill vectors with random values, //this could go in fn
+    //Fill vectors with random values
     //fillWithRandom(&mut s_clear, &mut b_clear);
 
     fillWithRandomu64(&mut s_clear64, &mut b_clear64);
@@ -71,8 +63,8 @@ fn setupAndRun()
 
     // Call to algos  //we time inside
 
-    integer_u16_paral::run(&mut s_clear64_16, &mut b_clear64_16, num_block);    
-    drop(s_clear64_16);drop(b_clear64_16);
+    //integer_u16_paral::run(&mut s_clear64_16, &mut b_clear64_16, num_block);    
+    //drop(s_clear64_16);drop(b_clear64_16);
     //high_api::run(&mut s_clear, &mut b_clear, num_block);
     //drop(s_clear);drop(b_clear);
     integer_padded_paral::run(&mut s_clear64_p, &mut b_clear64_p, num_block);

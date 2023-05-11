@@ -1,7 +1,6 @@
 use tfhe::{ConfigBuilder, generate_keys, set_server_key, FheUint16};
 use tfhe::prelude::*;
 use std::time::{Instant, Duration};
-use rand::Rng;
 use crate::logging;
 
 pub fn run(s_clear: &mut Vec<u16>, b_clear: &mut Vec<u16>, _NUM_BLOCK: usize) {
