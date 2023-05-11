@@ -9,8 +9,8 @@ type Cipertext = BaseRadixCiphertext<CiphertextBase<KeyswitchBootstrap>>;
 
 use crate::logging;
 
-const MAXLISTLENGTH : usize = 10;  //500
-const MAXVALUE : u64 = 5;
+const MAXLISTLENGTH : usize = 500;  //500
+const MAXVALUE : u64 = 100;
 
 pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize)
 {

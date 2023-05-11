@@ -18,8 +18,8 @@ pub mod logging;
 
 type Ciphertext = BaseRadixCiphertext<CiphertextBase<KeyswitchBootstrap>>;
 
-const MAXLISTLENGTH : usize = 10; //500;
-const MAXVALUE : u16 = 5; //100;
+const MAXLISTLENGTH : usize = 500; //500;
+const MAXVALUE : u16 = 100; //100;
 
 fn main() {
     // We generate a set of client/server keys, using the default parameters:
