@@ -18,18 +18,27 @@ pub mod logging;
 
 type Ciphertext = BaseRadixCiphertext<CiphertextBase<KeyswitchBootstrap>>;
 
-const MAXLISTLENGTH : usize = 500; //500;
-const MAXVALUE : u16 = 100; //100;
+const MAXLISTLENGTH : usize = 10; //500;
+const MAXVALUE : u16 = 5; //100;
 
 fn main() {
+    for _ in 1..2 {
+        setupAndRun();
+    }
+
+}
+
+
+fn setupAndRun()
+{
     // We generate a set of client/server keys, using the default parameters:
     let num_block = 4;
 
     // Define varibles
 
     //u16 for high_api
-    let mut s_clear : Vec<u16> = vec![0; MAXLISTLENGTH];
-    let mut b_clear : Vec<u16> = vec![0; MAXLISTLENGTH];
+    //let mut s_clear : Vec<u16> = vec![0; MAXLISTLENGTH];
+    //let mut b_clear : Vec<u16> = vec![0; MAXLISTLENGTH];
 
     //u16 for integer_u16
     let mut s_clear64_16 : Vec<u64> = vec![0; MAXLISTLENGTH];
@@ -44,7 +53,7 @@ fn main() {
     let mut b_clear64 : Vec<u64> = vec![0; MAXLISTLENGTH];
     
     //Fill vectors with random values, //this could go in fn
-    fillWithRandom(&mut s_clear, &mut b_clear);
+    //fillWithRandom(&mut s_clear, &mut b_clear);
 
     fillWithRandomu64(&mut s_clear64, &mut b_clear64);
 
@@ -64,15 +73,13 @@ fn main() {
 
     integer_u16_paral::run(&mut s_clear64_16, &mut b_clear64_16, num_block);    
     drop(s_clear64_16);drop(b_clear64_16);
-    high_api::run(&mut s_clear, &mut b_clear, num_block);
-    drop(s_clear);drop(b_clear);
+    //high_api::run(&mut s_clear, &mut b_clear, num_block);
+    //drop(s_clear);drop(b_clear);
     integer_padded_paral::run(&mut s_clear64_p, &mut b_clear64_p, num_block);
     drop(s_clear64_p);drop(b_clear64_p);
-    integer_paral::run(&mut s_clear64, &mut b_clear64, num_block, MAXLISTLENGTH);
-    drop(s_clear64);drop(b_clear64);
-
+    //::run(&mut s_clear64, &mut b_clear64, num_block, MAXLISTLENGTH);
+    //drop(s_clear64);drop(b_clear64);
 }
-
 
 fn fillWithRandomu64(s: &mut Vec<u64>, b: &mut Vec<u64>) 
 {

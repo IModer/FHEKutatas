@@ -11,7 +11,7 @@ pub fn log(name : &str, time : Duration)
     .open("runtime.log")
     .unwrap();
     
-    if let Err(e) = writeln!(file, "LOG: {} {:.4?} ", name, time) {
+    if let Err(e) = writeln!(file, "{} {:.4?} ", name, time) {
     eprintln!("Couldn't write to file: {}", e);
     }
 }

@@ -61,45 +61,45 @@ pub fn volume_match(
     let mut buy_vol  = server_key.create_trivial_zero_radix(NUM_BLOCK*2);
     
     // Sum into S and B in paralell
-    let now = Instant::now();
+    //let now = Instant::now();
 
     join(
         || (for i in 0..s.len() {add(&mut sell_vol, &mut s[i], server_key);}), 
         || (for i in 0..b.len() {add(&mut buy_vol,&mut b[i], server_key);})
     );
 
-    let elapsed = now.elapsed();
-    logging::log("integer_padded_paral summing", elapsed);
+    //let elapsed = now.elapsed();
+    //logging::log("integer_padded_paral summing", elapsed);
     //println!("integer_padded_paral : Summing s and b: {elapsed:.2?}");
     
     // Min of S and B
-    let now = Instant::now();
+    //let now = Instant::now();
 
     sell_vol = server_key.smart_min_parallelized(&mut sell_vol, &mut buy_vol);
     buy_vol = sell_vol.clone();
     
-    let elapsed = now.elapsed();
-    logging::log("integer_padded_paral leftvols", elapsed);
+    //let elapsed = now.elapsed();
+    //logging::log("integer_padded_paral leftvols", elapsed);
     //println!("integer_padded_paral : Setting up leftvols: {elapsed:.2?}");
     
     // Calculate new s and b <- Parallalise this
-    let mut min_dur = Duration::new(0,0);
-    let mut sub_dur = Duration::new(0,0);
+    //let mut min_dur = Duration::new(0,0);
+    //let mut sub_dur = Duration::new(0,0);
     
     join(
         ||(for i in 0..s.len()
         {
-            let now2 = Instant::now();
+            //let now2 = Instant::now();
 
             //s[i] = min(&mut sell_vol, &mut s[i], server_key);
             s[i] = from2NtoNbit(&mut server_key.smart_min_parallelized(&mut sell_vol, &mut s16[i]));
 
-            min_dur += now2.elapsed();
-            let now2 = Instant::now();
+            //min_dur += now2.elapsed();
+            //let now2 = Instant::now();
 
             sub(&mut sell_vol, &mut s[i], server_key);
 
-            sub_dur += now2.elapsed();
+            //sub_dur += now2.elapsed();
         }),
         ||(for i in 0..b.len()
         {
@@ -110,12 +110,12 @@ pub fn volume_match(
         })
     );
     
-    let elapsed = now.elapsed();
+    //let elapsed = now.elapsed();
     
     //println!("integer_padded_paral : Subtracting only s: {sub_dur:.2?}");
     //println!("integer_padded_paral : Min only s: {min_dur:.2?}");
     //println!("integer_padded_paral : Subtracting and min: {elapsed:.2?}");
-    logging::log("integer_padded_paral loop", elapsed);
+    //logging::log("integer_padded_paral loop", elapsed);
 
 }
 
