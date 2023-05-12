@@ -1,6 +1,5 @@
 #![allow(non_snake_case)]
 use std::time::{Instant, Duration};
-use rand::Rng;
 use tfhe::integer::{ServerKey, gen_keys_radix, ciphertext::BaseRadixCiphertext};
 use tfhe::shortint::{CiphertextBase, ciphertext::KeyswitchBootstrap};
 use tfhe::shortint::parameters::PARAM_MESSAGE_2_CARRY_2;
@@ -11,6 +10,7 @@ use crate::logging;
 
 const MAXLISTLENGTH : usize = 500;  //500
 const MAXVALUE : u64 = 100; //100
+
 
 pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize)
 {
@@ -31,7 +31,7 @@ pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize)
 
     volume_match(&mut s, &mut b, &server_key, _NUM_BLOCK);
 
-    let elapsed = now.elapsed();
+    let elapsed: Duration = now.elapsed();
     logging::log("integer_u16_paral total", elapsed);
     //println!("Time for the integer_u16_paral: {elapsed:.2?}\n----------------------");
 
@@ -62,7 +62,7 @@ fn volume_match
 
     join(
         || (
-            for i in 0..MAXLISTLENGTH 
+            for i in 0..s.len() 
             {
                 if !server_key.is_add_possible(&mut S, &mut s[i]) 
                 {
@@ -72,7 +72,7 @@ fn volume_match
             }
         ), 
         || (
-            for i in 0..MAXLISTLENGTH 
+            for i in 0..b.len() 
             {
                 if !server_key.is_add_possible(&mut B, &mut b[i])
                 {
@@ -105,7 +105,7 @@ fn volume_match
 
     join(
         || (
-            for i in 0..MAXLISTLENGTH
+            for i in 0..s.len()
             {
                 //let now2 = Instant::now();
 
@@ -121,7 +121,7 @@ fn volume_match
             }
         ),
         || (
-            for i in 0..MAXLISTLENGTH 
+            for i in 0..b.len() 
             {
                 b[i] = server_key.smart_min_parallelized(&mut b[i], &mut B);
                 server_key.smart_sub_assign_parallelized(&mut B, &mut b[i]);

@@ -1,6 +1,5 @@
 use std::fs::OpenOptions;
 use std::io::Write;
-use std::string;
 use std::time::Duration;
 
 pub fn log(name : &str, time : Duration)
