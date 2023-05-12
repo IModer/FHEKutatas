@@ -18,16 +18,14 @@ pub mod logging;
 
 type Ciphertext = BaseRadixCiphertext<CiphertextBase<KeyswitchBootstrap>>;
 
-const MAXLISTLENGTH : usize = 10; //500;
-const MAXVALUE : u16 = 5; //100;
+const MAXLISTLENGTH : usize = 500; //500;
+const MAXVALUE : u16 = 100; //100;
 
 fn main() {
-    for _ in 1..2 {
+    for _ in 0..40 {
         setupAndRun();
     }
-
 }
-
 
 fn setupAndRun()
 {
@@ -73,6 +71,7 @@ fn setupAndRun()
 
     integer_u16_paral::run(&mut s_clear64_16, &mut b_clear64_16, num_block);    
     drop(s_clear64_16);drop(b_clear64_16);
+    
     //high_api::run(&mut s_clear, &mut b_clear, num_block);
     //drop(s_clear);drop(b_clear);
     integer_padded_paral::run(&mut s_clear64_p, &mut b_clear64_p, num_block);

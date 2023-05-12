@@ -36,7 +36,7 @@ pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize) {
 
     let elapsed = now.elapsed();
     
-    println!("{:?}", elapsed);
+    //println!("{:?}", elapsed);
 
     logging::log("integer_padded_paral total", elapsed);
     //println!("Time for the integer_padded_paral: {elapsed:.2?}\n----------------------");
@@ -85,24 +85,24 @@ pub fn volume_match(
     //println!("integer_padded_paral : Setting up leftvols: {elapsed:.2?}");
     
     // Calculate new s and b <- Parallalise this
-    let mut min_dur = Duration::new(0,0);
-    let mut sub_dur = Duration::new(0,0);
-    let now = Instant::now();
+    //let mut min_dur = Duration::new(0,0);
+    //let mut sub_dur = Duration::new(0,0);
+    //let now = Instant::now();
     
     join(
         ||(for i in 0..s.len()
         {
-            let now2 = Instant::now();
+            //let now2 = Instant::now();
 
             //s[i] = min(&mut sell_vol, &mut s[i], server_key);
             s[i] = from2NtoNbit(&mut server_key.smart_min_parallelized(&mut sell_vol, &mut s16[i]));
 
-            min_dur += now2.elapsed();
-            let now2 = Instant::now();
+            //min_dur += now2.elapsed();
+            //let now2 = Instant::now();
 
             sub(&mut sell_vol, &mut s[i], server_key);
 
-            sub_dur += now2.elapsed();
+            //sub_dur += now2.elapsed();
         }),
         ||(for i in 0..b.len()
         {
@@ -113,12 +113,12 @@ pub fn volume_match(
         })
     );
     
-    let elapsed = now.elapsed();
+    //let elapsed = now.elapsed();
     
-    println!("integer_padded_paral : Subtracting only s: {sub_dur:?}");
-    println!("integer_padded_paral : Min only s: {min_dur:?}");
+    //println!("integer_padded_paral : Subtracting only s: {sub_dur:?}");
+    //println!("integer_padded_paral : Min only s: {min_dur:?}");
     //println!("integer_padded_paral : Subtracting and min: {elapsed:.2?}");
-    logging::log("integer_padded_paral loop", elapsed);
+    //logging::log("integer_padded_paral loop", elapsed);
 
 }
 
