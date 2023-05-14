@@ -13,7 +13,7 @@ const MAXLISTLENGTH : usize = 10; //500;
 const MAXVALUE : u16 = 10; //100;
 
 fn main() {
-    for _ in 0..40 {
+    for _ in 1..2 {
         setupAndRun();
     }
 }
@@ -60,11 +60,11 @@ fn setupAndRun()
 
     // Call to algos  //we time inside
 
-    integer_u16_paral::run(&mut s_clear64_16, &mut b_clear64_16, num_block);
-    drop(s_clear64_16);drop(b_clear64_16);
+    //integer_u16_paral::run(&mut s_clear64_16, &mut b_clear64_16, num_block);
+    //drop(s_clear64_16);drop(b_clear64_16);
     //high_api::run(&mut s_clear, &mut b_clear, num_block);
     //drop(s_clear);drop(b_clear);
-    //integer_padded_paral::run(&mut s_clear64_p, &mut b_clear64_p, num_block);
+    integer_padded_paral::run(&mut s_clear64_p, &mut b_clear64_p, num_block);
     full_paral::run(&mut s_clear64, &mut b_clear64, num_block);
     println!("Output for integer_paral : \n s = {s_clear64:?} \n b = {b_clear64:?}");
 

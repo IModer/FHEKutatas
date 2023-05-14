@@ -71,14 +71,12 @@ pub fn volume_match(
     let now = Instant::now();
     let mut zero: Ciphertext = server_key.create_trivial_zero_radix(8);
     
-    S[0] = server_key.create_trivial_zero_radix(8);
-    B[0] = server_key.create_trivial_zero_radix(8);
     join(
         || (for i in 0..s.len() {S[i+1] = add_assign(&mut S[i], &mut s[i], server_key);}), 
         || (for i in 0..b.len() {B[i+1] = add_assign(&mut B[i],&mut b[i], server_key);})
     );
 
-    let mut v: Vec<u64> = Vec::with_capacity(s.len());
+    /*let mut v: Vec<u64> = Vec::with_capacity(s.len());
     for i in 0..s.len()+1 {
         v.push(client_key.decrypt(&S[i]));
     }
@@ -90,15 +88,17 @@ pub fn volume_match(
     }
 
     println!("{v:?}");
-    v.clear();
+    v.clear();*/
     let elapsed = now.elapsed();
     //logging::log("integer_padded_paral summing", elapsed);
     println!("integer_padded_paral : Summing: {elapsed:?}");
     
     // Min of S and B
     let now = Instant::now();
+    
     let mut L = server_key.smart_min_parallelized(&mut S[s.len()], &mut B[s.len()]);
     server_key.full_propagate_parallelized(&mut L);
+
     let elapsed = now.elapsed();
     //logging::log("integer_padded_paral leftvols", elapsed);
     println!("integer_padded_paral : Setting up leftvols: {elapsed:.2?}");
