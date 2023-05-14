@@ -33,7 +33,7 @@ pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize) {
 
     let elapsed: Duration = now.elapsed();
     
-    println!("{:?}", elapsed);
+    //println!("{:?}", elapsed);
 
     logging::log("integer_padded_paral total", elapsed);
 
@@ -113,8 +113,8 @@ pub fn volume_match(
     
     //let elapsed = now.elapsed();
     
-    //println!("integer_padded_paral : Subtracting: {sub_dur:?}");
-    //println!("integer_padded_paral : Min: {min_dur:?}");
+    //println!("integer_padded_paral : Subtracting only s: {sub_dur:?}");
+    //println!("integer_padded_paral : Min only s: {min_dur:?}");
     //println!("integer_padded_paral : Subtracting and min: {elapsed:.2?}");
     //logging::log("integer_padded_paral loop", elapsed);
 
