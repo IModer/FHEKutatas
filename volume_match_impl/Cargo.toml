@@ -9,6 +9,7 @@ edition = "2021"
 rand = "0.8.5"
 rayon = "1.7.0"
 tfhe = { version = "0.2.3", features = [ "boolean", "shortint", "integer", "x86_64-unix" ] }
+itertools = "0.8"
 
 [profile.dev]
 opt-level = 3
