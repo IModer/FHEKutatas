@@ -56,7 +56,7 @@ fn setupAndRun()
     //println!("Input for integer_u16_paral : \n s = {s_clear64_16:?} \n b = {b_clear64_16:?}");
     //println!("Input for high_api_paral : \n s = {s_clear64:?} \n b = {b_clear64:?}");
     //println!("Input for integer_padded_paral : \n s = {s_clear64_p:?} \n b = {b_clear64_p:?}");
-    println!("Input for integer_paral : \n s = {s_clear64:?} \n b = {b_clear64:?}");
+    //println!("Input for integer_paral : \n s = {s_clear64:?} \n b = {b_clear64:?}");
 
     // Call to algos  //we time inside
 
@@ -66,7 +66,7 @@ fn setupAndRun()
     //drop(s_clear);drop(b_clear);
     integer_padded_paral::run(&mut s_clear64_p, &mut b_clear64_p, num_block);
     full_paral::run(&mut s_clear64, &mut b_clear64, num_block);
-    println!("Output for integer_paral : \n s = {s_clear64:?} \n b = {b_clear64:?}");
+    //println!("Output for integer_paral : \n s = {s_clear64:?} \n b = {b_clear64:?}");
 
     //drop(s_clear64_p);drop(b_clear64_p);
     //::run(&mut s_clear64, &mut b_clear64, num_block, MAXLISTLENGTH);

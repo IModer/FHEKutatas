@@ -35,7 +35,7 @@ pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize) {
 
     let elapsed: Duration = now.elapsed();
     
-    println!("integer_padded_paral total: {:?}", elapsed);
+    //println!("integer_padded_paral total: {:?}", elapsed);
 
     logging::log("integer_padded_paral total", elapsed);
 
@@ -89,22 +89,22 @@ pub fn volume_match(
 
     println!("{v:?}");
     v.clear();*/
-    let elapsed = now.elapsed();
+    //let elapsed = now.elapsed();
     //logging::log("integer_padded_paral summing", elapsed);
-    println!("integer_padded_paral : Summing: {elapsed:?}");
+    //println!("integer_padded_paral : Summing: {elapsed:?}");
     
     // Min of S and B
-    let now = Instant::now();
+    //let now = Instant::now();
     
     let mut L = server_key.smart_min_parallelized(&mut S[s.len()], &mut B[s.len()]);
     server_key.full_propagate_parallelized(&mut L);
 
-    let elapsed = now.elapsed();
+    //let elapsed = now.elapsed();
     //logging::log("integer_padded_paral leftvols", elapsed);
-    println!("integer_padded_paral : Setting up leftvols: {elapsed:.2?}");
+    //println!("integer_padded_paral : Setting up leftvols: {elapsed:.2?}");
     
     // Calculate new s and b <- Parallalise this
-    let now = Instant::now();
+    //let now = Instant::now();
     
     join(
         ||{
@@ -120,7 +120,7 @@ pub fn volume_match(
     );
     let elapsed = now.elapsed();
     
-    println!("integer_padded_paral : Min: {elapsed:.2?}");
+    //println!("integer_padded_paral : Min: {elapsed:.2?}");
     //logging::log("integer_padded_paral loop", elapsed);
 
 }
