@@ -35,9 +35,9 @@ pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize) {
 
     let elapsed: Duration = now.elapsed();
     
-    //println!("integer_padded_paral total: {:?}", elapsed);
+    //println!("full_paral total: {:?}", elapsed);
 
-    logging::log("integer_padded_paral total", elapsed);
+    logging::log("full_paral total", elapsed);
 
     for i in 0..s.len() {
         s_clear[i] = client_key.decrypt(&s[i]);
@@ -70,7 +70,7 @@ pub fn volume_match(
     // Sum into S and B in paralell
     let now = Instant::now();
     let mut zero: Ciphertext = server_key.create_trivial_zero_radix(8);
-    
+
     join(
         || (for i in 0..s.len() {S[i+1] = add_assign(&mut S[i], &mut s[i], server_key);}), 
         || (for i in 0..b.len() {B[i+1] = add_assign(&mut B[i],&mut b[i], server_key);})
@@ -96,7 +96,7 @@ pub fn volume_match(
     // Min of S and B
     //let now = Instant::now();
     
-    let mut L = server_key.smart_min_parallelized(&mut S[s.len()], &mut B[s.len()]);
+    let mut L = server_key.smart_min_parallelized(&mut S[s.len()], &mut B[b.len()]);
     server_key.full_propagate_parallelized(&mut L);
 
     //let elapsed = now.elapsed();
@@ -147,16 +147,6 @@ fn add_assign(
     b: &mut Ciphertext,
     server_key: &ServerKey
 ) -> Ciphertext {
-    /*let mut v: Vec<usize> = Vec::new();
-    for block in b.blocks_mut().iter_mut() {
-        v.push(block.degree.0);
-    }
-    println!("{:?}", v);
-    v.clear();
-    for block in a.blocks_mut().iter_mut() {
-        v.push(block.degree.0);
-    }
-    println!("{:?}", v);*/
     if !server_key.is_add_possible(a, &b) {
         server_key.full_propagate_parallelized(a);
     }
@@ -171,9 +161,12 @@ fn min(
 ) -> Ciphertext {
     server_key.full_propagate_parallelized(X);
     let mut t:Ciphertext = server_key.unchecked_min_parallelized(L, X);
+    
     server_key.full_propagate_parallelized(&mut t);
     let mut m: Ciphertext = server_key.unchecked_sub(L, &t);
+    
     server_key.full_propagate_parallelized(&mut m);
     *x16 = server_key.unchecked_min_parallelized(x16, &m);
+
     from2NtoNbit(x16)
 }
