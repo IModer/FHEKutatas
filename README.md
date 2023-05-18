@@ -1,25 +1,11 @@
-# Kutatás
+# FHE Kutatás
 
-Téma: Volume match algoritmus implementálása FHE-ben
+## Leírás
 
-## Idővonal
+A [Volume match algoritmus](https://eprint.iacr.org/2022/923) a TFHE-rs Rust könyvtárban.  
 
-- 05-04 - TDK jelentkezés leadás &&Absztrakt feltöltés
-- 05-18 - Dolgazatok feltöltése
-- 06-01 - TDK Konferencia
+## Kapcsolódó linkek
 
-## Teendők
-
-- TDK jelentkezés : [http://tda.inf.elte.hu/](http://tda.inf.elte.hu/)
-- Algoritmus kiválasztás:
-   - [Volume match](https://github.com/zama-ai/bounty-program/blob/main/Bounties/Application/create-a-dark-market-app-tutorial.md) 
-
-## Használt anyagok
-
-## Hasznos linkek
-
-[Concrete docs](https://docs.zama.ai/concrete)
-
-[Concrete forum](https://community.zama.ai/c/concrete/7)
+[TFHE-rs docs](https://docs.zama.ai/tfhe-rs)
 
 [Bounty program](https://github.com/zama-ai/bounty-program)
