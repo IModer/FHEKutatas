@@ -1,6 +1,5 @@
 #![allow(non_snake_case)]
 use std::time::{Instant, Duration};
-use rand::Rng;
 use tfhe::integer::{ServerKey, gen_keys_radix, ciphertext::BaseRadixCiphertext};
 use tfhe::shortint::{CiphertextBase, ciphertext::KeyswitchBootstrap};
 use tfhe::shortint::parameters::PARAM_MESSAGE_2_CARRY_2;
@@ -9,8 +8,9 @@ type Cipertext = BaseRadixCiphertext<CiphertextBase<KeyswitchBootstrap>>;
 
 use crate::logging;
 
-const MAXLISTLENGTH : usize = 10;  //500
-const MAXVALUE : u64 = 5;
+const MAXLISTLENGTH : usize = 500;  //500
+const MAXVALUE : u64 = 100; //100
+
 
 pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize)
 {
@@ -27,13 +27,13 @@ pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize)
     }
 
     let now = Instant::now();
-    println!("----------------------\nRunning integer_u16_paral");
+    //println!("----------------------\nRunning integer_u16_paral");
 
     volume_match(&mut s, &mut b, &server_key, _NUM_BLOCK);
 
-    let elapsed = now.elapsed();
+    let elapsed: Duration = now.elapsed();
     logging::log("integer_u16_paral total", elapsed);
-    println!("Time for the integer_u16_paral: {elapsed:.2?}\n----------------------");
+    //println!("Time for the integer_u16_paral: {elapsed:.2?}\n----------------------");
 
     for i in 0..s.len() {
         s_clear[i] = client_key.decrypt(&s[i]);
@@ -58,11 +58,11 @@ fn volume_match
 
     // Sum into S and B in paralell
 
-    let now = Instant::now();
+    //let now = Instant::now();
 
     join(
         || (
-            for i in 0..MAXLISTLENGTH 
+            for i in 0..s.len() 
             {
                 if !server_key.is_add_possible(&mut S, &mut s[i]) 
                 {
@@ -72,7 +72,7 @@ fn volume_match
             }
         ), 
         || (
-            for i in 0..MAXLISTLENGTH 
+            for i in 0..b.len() 
             {
                 if !server_key.is_add_possible(&mut B, &mut b[i])
                 {
@@ -83,45 +83,45 @@ fn volume_match
         )
     );
     
-    let elapsed = now.elapsed();
-    logging::log("integer_u16_paral summing", elapsed);
-    println!("integer_u16_paral : Summing s and b: {elapsed:.2?}");
+    //let elapsed = now.elapsed();
+    //logging::log("integer_u16_paral summing", elapsed);
+    //println!("integer_u16_paral : Summing s and b: {elapsed:.2?}");
     // Min of S and B
     
-    let now = Instant::now();
+    //let now = Instant::now();
 
     S = server_key.smart_min_parallelized(&mut S, &mut B);
     B = S.clone();
     
-    let elapsed = now.elapsed();
-    logging::log("integer_u16_paral leftvols", elapsed);
-    println!("integer_u16_paral : Setting up leftvols: {elapsed:.2?}");
+    //let elapsed = now.elapsed();
+    //logging::log("integer_u16_paral leftvols", elapsed);
+    //println!("integer_u16_paral : Setting up leftvols: {elapsed:.2?}");
     // Calculate new s and b <- Parallalise this
 
 
     
-    let mut min_dur = Duration::new(0,0);
-    let mut sub_dur = Duration::new(0,0);
+    //let mut min_dur = Duration::new(0,0);
+    //let mut sub_dur = Duration::new(0,0);
 
     join(
         || (
-            for i in 0..MAXLISTLENGTH
+            for i in 0..s.len()
             {
-                let now2 = Instant::now();
+                //let now2 = Instant::now();
 
                 s[i] = server_key.smart_min_parallelized(&mut s[i], &mut S);
 
-                min_dur += now2.elapsed();
+                //min_dur += now2.elapsed();
 
-                let now2 = Instant::now();
+                //let now2 = Instant::now();
 
                 server_key.smart_sub_assign_parallelized(&mut S, &mut s[i]);
 
-                sub_dur += now2.elapsed();
+                //sub_dur += now2.elapsed();
             }
         ),
         || (
-            for i in 0..MAXLISTLENGTH 
+            for i in 0..b.len() 
             {
                 b[i] = server_key.smart_min_parallelized(&mut b[i], &mut B);
                 server_key.smart_sub_assign_parallelized(&mut B, &mut b[i]);
@@ -129,10 +129,10 @@ fn volume_match
         )
     );
 
-    let elapsed = now.elapsed();
+    //let elapsed = now.elapsed();
     
-    println!("integer_u16_paral : Subtracting only s: {sub_dur:.2?}");
-    println!("integer_u16_paral : Min only s: {min_dur:.2?}");
-    println!("integer_u16_paral : Subtracting and min: {elapsed:.2?}");
-    logging::log("integer_u16_paral loop", elapsed);
+    //println!("integer_u16_paral : Subtracting only s: {sub_dur:.2?}");
+    //println!("integer_u16_paral : Min only s: {min_dur:.2?}");
+    //println!("integer_u16_paral : Subtracting and min: {elapsed:.2?}");
+    //logging::log("integer_u16_paral loop", elapsed);
 }

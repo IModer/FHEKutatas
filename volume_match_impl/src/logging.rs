@@ -1,6 +1,5 @@
 use std::fs::OpenOptions;
 use std::io::Write;
-use std::string;
 use std::time::Duration;
 
 pub fn log(name : &str, time : Duration)
@@ -11,7 +10,7 @@ pub fn log(name : &str, time : Duration)
     .open("runtime.log")
     .unwrap();
     
-    if let Err(e) = writeln!(file, "LOG: {} {:.4?} ", name, time) {
+    if let Err(e) = writeln!(file, "{} {:.4?} ", name, time) {
     eprintln!("Couldn't write to file: {}", e);
     }
 }
