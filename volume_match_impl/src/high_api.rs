@@ -68,7 +68,6 @@ fn volume_match(s: &mut Vec<FheUint16>, b: &mut Vec<FheUint16>){
     let elapsed = now.elapsed();
     logging::log("high_api summing", elapsed);
     println!("high_api : Summing s and b: {elapsed:.2?}");
-   
 
     //S functions now as the first leftvol/transvol B as the second
     let now = Instant::now();
