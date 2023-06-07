@@ -1,10 +1,10 @@
-# FHE Kutatás
+# FHE Research
 
-## Leírás
+## Description
 
-A [Volume match algoritmus](https://eprint.iacr.org/2022/923) a TFHE-rs Rust könyvtárban.  
+A [Volume match algorithm](https://eprint.iacr.org/2022/923) in Zama's TFHE-rs Rust library.  
 
-## Kapcsolódó linkek
+## Related links and references
 
 [TFHE-rs docs](https://docs.zama.ai/tfhe-rs)
 
