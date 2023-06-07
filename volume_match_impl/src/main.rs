@@ -31,7 +31,7 @@ fn main() {
 fn setupAndRun(max_value : u16, list_length : usize)
 {
     // We generate a set of client/server keys, using the default parameters:
-    let num_block = 4;
+    const NUM_BLOCK: usize = 4;
 
     // Define varibles
 
@@ -63,24 +63,18 @@ fn setupAndRun(max_value : u16, list_length : usize)
     b_clear64_p = b_clear64.clone();
     
 
-    //println!("Input for integer_u16_paral : \n s = {s_clear64_16:?} \n b = {b_clear64_16:?}");
-    //println!("Input for high_api_paral : \n s = {s_clear64:?} \n b = {b_clear64:?}");
-    //println!("Input for integer_padded_paral : \n s = {s_clear64_p:?} \n b = {b_clear64_p:?}");
-    println!("Input for integer_paral : \n s = {s_clear64:?} \n b = {b_clear64:?}");
+    //println!("Input: \n s = {s_clear64_16:?} \n b = {b_clear64_16:?}");
+    //println!("Input: \n s = {s_clear64:?} \n b = {b_clear64:?}");
+    //println!("Input: \n s = {s_clear64_p:?} \n b = {b_clear64_p:?}");
+    //println!("Input: \n s = {s_clear64:?} \n b = {b_clear64:?}");
 
     // Call to algos  //we time inside
 
     //integer_u16_paral::run(&mut s_clear64_16, &mut b_clear64_16, num_block);
-    //drop(s_clear64_16);drop(b_clear64_16);
     //high_api::run(&mut s_clear, &mut b_clear, num_block);
-    //drop(s_clear);drop(b_clear);
     //integer_padded_paral::run(&mut s_clear64_p, &mut b_clear64_p, num_block);
-    full_paral::run(&mut s_clear64, &mut b_clear64, num_block);
-    println!("Output for integer_paral : \n s = {s_clear64:?} \n b = {b_clear64:?}");
-
-    //drop(s_clear64_p);drop(b_clear64_p);
-    //::run(&mut s_clear64, &mut b_clear64, num_block, MAXLISTLENGTH);
-    //drop(s_clear64);drop(b_clear64);
+    full_paral::run(&mut s_clear64, &mut b_clear64, 2*NUM_BLOCK);
+    //println!("Output: \n s = {s_clear64:?} \n b = {b_clear64:?}");
 }
 
 fn fillWithRandomu64(s: &mut Vec<u64>, b: &mut Vec<u64>, max_value : u16) 

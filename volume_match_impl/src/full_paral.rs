@@ -1,5 +1,4 @@
 #![allow(non_snake_case)]
-use tfhe::integer::RadixClientKey;
 use tfhe::integer::{ServerKey, gen_keys_radix,  ciphertext::BaseRadixCiphertext};
 use tfhe::shortint::{CiphertextBase, ciphertext::KeyswitchBootstrap, parameters::PARAM_MESSAGE_2_CARRY_2};
 use rayon::{prelude::*, join};
@@ -8,8 +7,8 @@ use crate::logging;
 
 type Ciphertext = BaseRadixCiphertext<CiphertextBase<KeyswitchBootstrap>>;
 
-pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize) {
-    let (client_key, server_key) = gen_keys_radix(&PARAM_MESSAGE_2_CARRY_2, _NUM_BLOCK*2);
+pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, NUM_BLOCK: usize) {
+    let (client_key, server_key) = gen_keys_radix(&PARAM_MESSAGE_2_CARRY_2, NUM_BLOCK);
     let mut s = Vec::with_capacity(s_clear.len());
     let mut b = Vec::with_capacity(b_clear.len());
 
@@ -23,7 +22,7 @@ pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize) {
 
     let now = Instant::now();
     
-    volume_match(&mut s, &mut b, _NUM_BLOCK, &server_key, &client_key);
+    volume_match(&mut s, &mut b, NUM_BLOCK, &server_key);
 
     let elapsed: Duration = now.elapsed();
     logging::log("full_paral total", elapsed);
@@ -41,17 +40,16 @@ pub fn volume_match(
     b : &mut Vec<Ciphertext>,
     NUM_BLOCK: usize,
     server_key: &ServerKey,
-    client_key: &RadixClientKey
 ) {
     // Init variables
     let mut S: Vec<Ciphertext>  = Vec::with_capacity(s.len()+1);
     let mut B: Vec<Ciphertext>  = Vec::with_capacity(b.len()+1);
     
     for _ in 0..s.len()+1 {
-        S.push(server_key.create_trivial_zero_radix(NUM_BLOCK*2));
+        S.push(server_key.create_trivial_zero_radix(NUM_BLOCK));
     }
     for _ in 0..b.len()+1 {
-        B.push(server_key.create_trivial_zero_radix(NUM_BLOCK*2));
+        B.push(server_key.create_trivial_zero_radix(NUM_BLOCK));
     }
 
     // Sum into S and B in paralell

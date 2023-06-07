@@ -3,7 +3,7 @@ use tfhe::prelude::*;
 use std::time::{Instant, Duration};
 use crate::logging;
 
-pub fn run(s_clear: &mut Vec<u16>, b_clear: &mut Vec<u16>, _NUM_BLOCK: usize) {
+pub fn run(s_clear: &mut Vec<u16>, b_clear: &mut Vec<u16>) {
     let config = ConfigBuilder::all_disabled()
         .enable_default_uint16()
         .build();
