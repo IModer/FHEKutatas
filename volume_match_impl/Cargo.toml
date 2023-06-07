@@ -11,6 +11,7 @@ rayon = "1.7.0"
 #When working on windows, use x86_64 instead of x86_64-unix!!!
 tfhe = { version = "0.2.4", features = [ "boolean", "shortint", "integer", "x86_64-unix" ] }
 itertools = "0.8"
+argh = "0.1.10"
 
 [profile.dev]
 opt-level = 3

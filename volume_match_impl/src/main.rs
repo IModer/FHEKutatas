@@ -3,22 +3,32 @@
 #![allow(unused)]
 use rand::Rng;
 
+use argh::FromArgs;
+
 pub mod integer_padded_paral;
 pub mod high_api;
 pub mod full_paral;
 pub mod integer_u16_paral;
 pub mod logging;
 
-const MAXLISTLENGTH : usize = 10; //500;
-const MAXVALUE : u16 = 10; //100;
+#[derive(FromArgs)]
+/// Volume match algorithm implemented in TFHE-rs
+struct FheArgs {
+    /// number of seller/buyers
+    #[argh(positional)]
+    list_length: usize,
 
-fn main() {
-    for _ in 1..2 {
-        setupAndRun();
-    }
+    /// max value a seller or buyer can sell/buy
+    #[argh(positional)]
+    max_value: u16,
 }
 
-fn setupAndRun()
+fn main() {
+    let args: FheArgs = argh::from_env();
+    setupAndRun(args.max_value, args.list_length);
+}
+
+fn setupAndRun(max_value : u16, list_length : usize)
 {
     // We generate a set of client/server keys, using the default parameters:
     let num_block = 4;
@@ -26,25 +36,25 @@ fn setupAndRun()
     // Define varibles
 
     //u16 for high_api
-    let mut s_clear : Vec<u16> = vec![0; MAXLISTLENGTH];
-    let mut b_clear : Vec<u16> = vec![0; MAXLISTLENGTH];
+    let mut s_clear : Vec<u16> = vec![0; list_length];
+    let mut b_clear : Vec<u16> = vec![0; list_length];
 
     //u16 for integer_u16
-    let mut s_clear64_16 : Vec<u64> = vec![0; MAXLISTLENGTH];
-    let mut b_clear64_16 : Vec<u64> = vec![0; MAXLISTLENGTH];
+    let mut s_clear64_16 : Vec<u64> = vec![0; list_length];
+    let mut b_clear64_16 : Vec<u64> = vec![0; list_length];
     
     //u64 for integer_padded 
-    let mut s_clear64_p : Vec<u64> = vec![0; MAXLISTLENGTH];
-    let mut b_clear64_p : Vec<u64> = vec![0; MAXLISTLENGTH];
+    let mut s_clear64_p : Vec<u64> = vec![0; list_length];
+    let mut b_clear64_p : Vec<u64> = vec![0; list_length];
 
     //u64 for integer
-    let mut s_clear64 : Vec<u64> = vec![0; MAXLISTLENGTH];
-    let mut b_clear64 : Vec<u64> = vec![0; MAXLISTLENGTH];
+    let mut s_clear64 : Vec<u64> = vec![0; list_length];
+    let mut b_clear64 : Vec<u64> = vec![0; list_length];
     
     //Fill vectors with random values
     //fillWithRandom(&mut s_clear, &mut b_clear);
 
-    fillWithRandomu64(&mut s_clear64, &mut b_clear64);
+    fillWithRandomu64(&mut s_clear64, &mut b_clear64, max_value);
 
     s_clear64_16 = s_clear64.clone();
     b_clear64_16 = b_clear64.clone();
@@ -56,7 +66,7 @@ fn setupAndRun()
     //println!("Input for integer_u16_paral : \n s = {s_clear64_16:?} \n b = {b_clear64_16:?}");
     //println!("Input for high_api_paral : \n s = {s_clear64:?} \n b = {b_clear64:?}");
     //println!("Input for integer_padded_paral : \n s = {s_clear64_p:?} \n b = {b_clear64_p:?}");
-    println!("Input for full_paral : \n s = {s_clear64:?} \n b = {b_clear64:?}");
+    println!("Input for integer_paral : \n s = {s_clear64:?} \n b = {b_clear64:?}");
 
     // Call to algos  //we time inside
 
@@ -66,33 +76,33 @@ fn setupAndRun()
     //drop(s_clear);drop(b_clear);
     //integer_padded_paral::run(&mut s_clear64_p, &mut b_clear64_p, num_block);
     full_paral::run(&mut s_clear64, &mut b_clear64, num_block);
-    println!("Output for full_paral : \n s = {s_clear64:?} \n b = {b_clear64:?}");
+    println!("Output for integer_paral : \n s = {s_clear64:?} \n b = {b_clear64:?}");
 
     //drop(s_clear64_p);drop(b_clear64_p);
     //::run(&mut s_clear64, &mut b_clear64, num_block, MAXLISTLENGTH);
     //drop(s_clear64);drop(b_clear64);
 }
 
-fn fillWithRandomu64(s: &mut Vec<u64>, b: &mut Vec<u64>) 
+fn fillWithRandomu64(s: &mut Vec<u64>, b: &mut Vec<u64>, max_value : u16) 
 {
     let mut rng = rand::thread_rng();
 
     for x in s {
-        *x = rng.gen_range(0..MAXVALUE) as u64;
+        *x = rng.gen_range(0..max_value) as u64;
     }
     for x in b {
-        *x = rng.gen_range(0..MAXVALUE) as u64;
+        *x = rng.gen_range(0..max_value) as u64;
     }
 }
 
-fn fillWithRandom(s: &mut Vec<u16>, b: &mut Vec<u16>) 
+fn fillWithRandom(s: &mut Vec<u16>, b: &mut Vec<u16>, max_value : u16) 
 {
     let mut rng = rand::thread_rng();
 
     for x in s {
-        *x = rng.gen_range(0..MAXVALUE);
+        *x = rng.gen_range(0..max_value);
     }
     for x in b {
-        *x = rng.gen_range(0..MAXVALUE);
+        *x = rng.gen_range(0..max_value);
     }
 }
