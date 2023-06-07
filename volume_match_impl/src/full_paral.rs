@@ -1,5 +1,4 @@
 #![allow(non_snake_case)]
-use itertools::izip;
 use tfhe::integer::RadixClientKey;
 use tfhe::integer::{ServerKey, gen_keys_radix,  ciphertext::BaseRadixCiphertext};
 use tfhe::shortint::{CiphertextBase, ciphertext::KeyswitchBootstrap};
@@ -34,9 +33,6 @@ pub fn run(s_clear: &mut Vec<u64>, b_clear: &mut Vec<u64>, _NUM_BLOCK: usize) {
     volume_match(&mut s, &mut b, &mut s16, &mut b16, _NUM_BLOCK, &server_key, &client_key);
 
     let elapsed: Duration = now.elapsed();
-    
-    //println!("full_paral total: {:?}", elapsed);
-
     logging::log("full_paral total", elapsed);
 
     for i in 0..s.len() {
@@ -68,30 +64,15 @@ pub fn volume_match(
     }
 
     // Sum into S and B in paralell
-    let now = Instant::now();
-    let mut zero: Ciphertext = server_key.create_trivial_zero_radix(8);
+    //let now = Instant::now();
 
     join(
         || (for i in 0..s.len() {S[i+1] = add_assign(&mut S[i], &mut s[i], server_key);}), 
         || (for i in 0..b.len() {B[i+1] = add_assign(&mut B[i],&mut b[i], server_key);})
     );
 
-    /*let mut v: Vec<u64> = Vec::with_capacity(s.len());
-    for i in 0..s.len()+1 {
-        v.push(client_key.decrypt(&S[i]));
-    }
-
-    println!("{v:?}");
-    v.clear();
-    for i in 0..b.len()+1 {
-        v.push(client_key.decrypt(&B[i]));
-    }
-
-    println!("{v:?}");
-    v.clear();*/
     //let elapsed = now.elapsed();
-    //logging::log("integer_padded_paral summing", elapsed);
-    //println!("integer_padded_paral : Summing: {elapsed:?}");
+    //logging::log("full_paral summing", elapsed);
     
     // Min of S and B
     //let now = Instant::now();
@@ -100,8 +81,7 @@ pub fn volume_match(
     server_key.full_propagate_parallelized(&mut L);
 
     //let elapsed = now.elapsed();
-    //logging::log("integer_padded_paral leftvols", elapsed);
-    //println!("integer_padded_paral : Setting up leftvols: {elapsed:.2?}");
+    //logging::log("full_paral setting up the transaction volume", elapsed);
     
     // Calculate new s and b <- Parallalise this
     //let now = Instant::now();
@@ -118,11 +98,9 @@ pub fn volume_match(
                 .collect();
         }
     );
-    let elapsed = now.elapsed();
+    //let elapsed = now.elapsed();
     
-    //println!("integer_padded_paral : Min: {elapsed:.2?}");
-    //logging::log("integer_padded_paral loop", elapsed);
-
+    //logging::log("full_paral loop", elapsed);
 }
 
 fn fromNto2Nbit(x: &Ciphertext, server_key: &ServerKey) -> Ciphertext
